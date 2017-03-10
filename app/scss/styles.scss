@@ -1,0 +1,270 @@
+@import "_variables.scss";
+@import "_bootstrap.scss";
+@import "_bootswatch.scss";
+
+body  {
+  background-color: $app-background-color;
+}
+#app .navtab {
+  background-color: #fff;
+  border-bottom: 3px solid $border-color
+
+}
+
+#app #tables {
+  margin-top: 10px;
+}
+
+#app #tables .table-box .row{
+    padding: 5px !important;
+
+}
+
+#app #tables .row .col-no-padding {
+  padding-right: 5px;
+}
+
+#app #tables .row .panel-no-margin {
+  margin-bottom: 15px;
+}
+
+#app .nav-tabs .datepicker-tab {
+  float:left;
+  padding-top: 5px;
+  margin-left: 100px;
+  & i {
+    margin-right: 7px;
+  }
+}
+#app #reportrange {
+  background-color: #f1f1f1;
+  padding: 4px 10px 4px 10px;
+  font-weight: bold;
+  font-size: 1.05em;
+}
+
+
+#app .breadcrumb > li + li:before {
+    content: "> ";
+}
+
+#app .panel-heading .breadcrumb {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  font-weight: normal !important;
+}
+
+#app .table-box .row {
+  padding: 7px 0px 7px 15px !important;
+  border-bottom: 1px solid $border-color;
+
+}
+
+#app .table-box {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+#app .table-box.container-fluid {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+#app .table-box .caption {
+  overflow: hidden;
+  -ms-text-overflow: ellipsis;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  display: block;
+  white-space: nowrap;
+}
+
+#app .col-nowrap {
+  white-space: nowrap;
+}
+
+#app .breadcrumb .caption {
+    display: inline-block;
+    padding: 0;
+    margin-top: -3px;
+    vertical-align: middle;
+    max-width: 10em !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#app .dimension-selected {
+  background: $brand-success-light !important;
+}
+
+#app .table-box .selectable:hover {
+  background: $hover-row;
+  cursor: pointer;
+}
+
+#app .good {
+  color: $good-metric !important;
+}
+
+#app .bad {
+  color: $bad-metric !important;
+}
+#app .very-small {
+  font-size: 12px;
+}
+
+#app .bar-default {
+  @include progress-bar-variant($color-bar-default);
+}
+
+#app .panel-body {
+  height: 505px;
+  margin: 0;
+  padding: 0px;
+}
+
+#app .panel-body .row .progress  {
+  margin: 0;
+}
+
+#app .panel-body .row .progress, .panel-body .row .progress-bar  {
+  height: 100%;
+}
+
+#app .progress {
+  overflow: hidden;
+  height: $line-height-computed;
+  margin-bottom: $line-height-computed;
+  background-color: unset !important;
+  border-radius: $progress-border-radius;
+  @include box-shadow(inset 0 1px 2px rgba(0,0,0,.1));
+  &-bar {
+    color: #fff !important;
+    font-weight: bold;
+    text-shadow: -1px 0 $color-bar-shadow, 0 1px $color-bar-shadow, 1px 0 $color-bar-shadow, 0 -1px $color-bar-shadow;
+    text-align: right;
+    @include box-shadow(none);
+
+    &:last-child {
+      border-radius: 0 3px 3px 0;
+    }
+
+    &:last-child {
+      &:before {
+        background-color: unset;
+      }
+    }
+
+    &-success:last-child.progress-bar:before {
+      background-color: unset;
+    }
+
+    &-info:last-child.progress-bar:before {
+      background-color: unset;
+    }
+    &-warning:last-child.progress-bar:before {
+      background-color: unset;
+    }
+
+    &-danger:last-child.progress-bar:before {
+      background-color: unset;
+    }
+  }
+}
+#app .number {
+  padding-left: 10px;
+}
+#app .measure-caption {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size:1.0em; /* IE9+ */
+  overflow: hidden;
+  -ms-text-overflow: ellipsis;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#app .measure-measure {
+  font-size: 2.6em;
+  font-weight: bold;
+  margin-bottom: -15px;
+  margin-top: -15px;
+}
+
+#app .card-measure {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 5px 0px 5px;
+}
+
+
+#app .card-measure .display .number small {
+  font-size: 22px;
+}
+
+#app .card-measure .graph {
+  padding-top: 10px;
+  // clear: both;
+}
+
+/**
+*
+ *  SCROLLBAR
+ */
+
+#app .scrollingbar::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  background-color: #F5F5F5;
+}
+
+#app .scrollingbar::-webkit-scrollbar
+{
+  width: 5px;
+  background-color: #F5F5F5;
+}
+
+#app .scrollingbar::-webkit-scrollbar-thumb
+{
+  background-color: #000000;
+  border: 2px solid #555555;
+}
+
+#app .panel-body {overflow:hidden;}
+#app .panel-body:hover{overflow-y:auto;}
+
+.jqstooltip {
+  width: unset !important;
+  height: auto !important;
+}
+
+#app .panel-heading {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid $border-color;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #3e4250;
+}
+#app .panel-heading .breadcrumb {
+  background-color: #ffffff !important;
+}
+
+#app .nav-tabs a {
+  font-weight: bold;
+}
+
+#app .measure-loader {
+  cursor: pointer;
+  margin: 5px 15px 5px 15px;
+  padding: 0;
+  color: #fff;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+#app .variation-right {
+  padding-left: 8px;
+}
+#app .display {
+  margin-top: -18px;
+}

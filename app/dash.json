@@ -1,0 +1,209 @@
+{
+  "tabs":[
+    {
+      "caption": "Externos",
+      "measures": [
+        {
+          "caption": "Qtd de Consultas",
+          "olapCube": "Atendimento Externo",
+          "olapMeasure": "Qtd de Consultas",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#,##0",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "xEmpresa",
+              "olapDimLevel": "Organizacao",
+              "caption": "Empresa",
+              "topFunction": null,
+              "topNumber": null,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ]
+        },
+        {
+          "caption": "Qtd de Exames",
+          "olapCube": "Exame",
+          "olapMeasure": "Qtd Exames Realizados",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#,##0",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "xEmpresa",
+              "olapDimLevel": "Organizacao",
+              "caption": "Empresa",
+              "topFunction": "",
+              "topNumber": null,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Especialidade",
+              "olapDimLevel": "Especialidade",
+              "caption": "Especialidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "caption": "Externos 2",
+      "measures": [
+        {
+          "caption": "Qtd de Exames",
+          "olapCube": "Exame",
+          "olapMeasure": "Qtd Exames Realizados",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#,##0",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "xEmpresa",
+              "olapDimLevel": "Organizacao",
+              "caption": "Empresa",
+              "topFunction": "",
+              "topNumber": null,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Especialidade",
+              "olapDimLevel": "Especialidade",
+              "caption": "Especialidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ]
+        },
+        {
+          "caption": "Qtd de Consultas",
+          "olapCube": "Atendimento Externo",
+          "olapMeasure": "Qtd de Consultas",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#,##0",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "xEmpresa",
+              "olapDimLevel": "Organizacao",
+              "caption": "Empresa",
+              "topFunction": null,
+              "topNumber": null,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+
+  ]
+}
