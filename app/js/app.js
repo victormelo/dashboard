@@ -14,6 +14,14 @@ function getColumns(row, offset) {
     return {CAPTION: 0+offset, NAME: 1+offset, MEASURE: 2+offset, VARIACAO: 3+offset, TENDENCIA: 4+offset, EXTRA_CAPTIONS: extra_captions};
 }
 
+function preprocessNumber(number) {
+    if (number != null) {
+        return parseInt(number);
+    }
+    return 0;
+}
+
+
 // Get string parameter
 var GET = {};
 
@@ -27,44 +35,6 @@ if (location.search) {
     }
 }
 
-
-String.prototype.clean = function() {
-    return this.replace(/ /g,'').replace(/[^\w\s]/gi, '')
-}
-
-String.prototype.nthIndexOf = function(pattern, n) {
-    var i = -1;
-
-    while (n-- && i++ < this.length) {
-        i = this.indexOf(pattern, i);
-        if (i < 0) break;
-    }
-
-    return i;
-}
-
-String.prototype.format = function (){
-    var args = arguments;
-    return this.replace(/\{\{|\}\}|\{(\d+)\}/g, function (curlyBrack, index) {
-        return ((curlyBrack == "{{") ? "{" : ((curlyBrack == "}}") ? "}" : args[index]));
-    });
-};
-
-String.prototype.formatParams = function(placeholders) {
-    var s = this;
-    for(var propertyName in placeholders) {
-        var re = new RegExp('{' + propertyName + '}', 'gm');
-        s = s.replace(re, placeholders[propertyName]);
-    }
-    return s;
-};
-function preprocessNumber(number) {
-    if (number != null) {
-        return parseInt(number);
-    }
-    return 0;
-}
-
 tabs = null;
 // $.get( "dash.json", function( data ) {
 
@@ -74,32 +44,10 @@ jsonURL = '/pentaho/plugin/ppa/api/dashmd?paramd={d}'.formatParams({'d': d});
 console.log(jsonURL)
 $.getJSON(jsonURL, function( data ) {
     tabs = data.tabs;
-    buildTabs(tabs);
+    global_filters = data.filters
+    buildTabs(tabs, global_filters);
 
 });
-
-// refer to http://jsfiddle.net/WojtekKruszewski/Zf3m7/22/
-var originalLeave = $.fn.popover.Constructor.prototype.leave;
-$.fn.popover.Constructor.prototype.leave = function(obj){
-    var self = obj instanceof this.constructor ?
-    obj : $(obj.currentTarget)[this.type](this.getDelegateOptions()).data('bs.' + this.type)
-    var container, timeout;
-
-    originalLeave.call(this, obj);
-
-    if(obj.currentTarget) {
-        container = $(obj.currentTarget).siblings('.popover')
-        timeout = self.timeout;
-        container.one('mouseenter', function(){
-            //We entered the actual popover – call off the dogs
-            clearTimeout(timeout);
-            //Let's monitor popover content instead
-            container.one('mouseleave', function(){
-                $.fn.popover.Constructor.prototype.leave.call(self, self);
-            });
-        });
-    }
-};
 
 function initPopover($elem, currentRow, drillDownBy, idx, $drillDownData) {
 
@@ -143,24 +91,25 @@ var monthNames = [
     "Novembro",
     "Dezembro"
 ];
+
+function reload() {
+    selected = $('.measure-selected');
+    measure_key = selected.attr('measure');
+    tab_key = selected.attr('tab');
+    tab = tabs[tab_key];
+    measure = tab.measures[measure_key];
+    filterArr = getDimensionFilters(measure).filterArr;
+    updateMeasure({
+        'tab_key': tab_key,
+        'filter': filterArr.slice(0),
+        'initial_measure_key': measure_key
+    });
+}
+
 function initDatePicker() {
 
-    $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
-        // console.log(picker.startDate.format('YYYY-MM-DD'));
-        // console.log(picker.endDate.format('YYYY-MM-DD'));
-        selected = $('.measure-selected');
-        measure_key = selected.attr('measure');
-        tab_key = selected.attr('tab');
-        tab = tabs[tab_key];
-        measure = tab.measures[measure_key]
-        updateMeasure({
-            'tab_key': tab_key,
-            'filter': filterArr.slice(0),
-            'initial_measure_key': measure_key,
-            'selectMeasure': true
-        });
+    $('#reportrange').on('apply.daterangepicker', reload);
 
-    });
     function cb(start, end) {
         endFormat = 'DD [de] MMMM [de] YYYY';
         startFormat = 'DD'
@@ -216,8 +165,6 @@ function initDatePicker() {
     }, cb);
     cb(start, end);
 
-
-
 }
 
 function breadcrumbNavigate () {
@@ -257,27 +204,11 @@ function breadcrumbNavigate () {
             'tab_key': tab_key,
             'filter': filterArr.slice(0),
             'initial_measure_key': measure_key,
-            'initial_dimension_key': dimension_key,
-            'selectMeasure': true
+            'initial_dimension_key': dimension_key
         });
     }
 }
 
-function makeFilt(dims, key_dim) {
-    filt = dims[key_dim].map(function(x){
-        if (x.indexOf('[') < 0) {
-            return '[{olapDimHierarchy}].[{name}]'.formatParams({'name': x, 'olapDimHierarchy': key_dim})
-        } else {
-            return x;
-        }
-    }).join(", ");
-
-    return '{'+filt+'}';
-}
-function crossJoin(filt, morefilt) {
-    return 'CrossJoin( {filt}, {morefilt})'.formatParams({'filt': filt,
-                                                         'morefilt': morefilt});
-}
 function makeQuery(params) {
     dimension = params.dimension || null;
     tab = params.tab || null;
@@ -299,11 +230,11 @@ function makeQuery(params) {
 
     startLastYear = startdate.clone().subtract(1, 'year');
     endLastYear = enddate.clone().subtract(1, 'year');
-    startU12 = enddate.clone().subtract(11, 'month').startOf('month');
-
+    startU12 = enddate.clone().subtract(12, 'month').startOf('month');
+    endU12 = enddate.clone().subtract(1, 'month').endOf('month');
     var u12Months = [];
     currentMonth = startU12.clone()
-    while (currentMonth.isBefore(enddate)) {
+    while (currentMonth.isBefore(endU12)) {
       u12Months.push(currentMonth.clone());
       currentMonth = currentMonth.add(1, "month");
     };
@@ -370,7 +301,7 @@ function makeQuery(params) {
 
     // Filters
     measure.filters = measure.filters || [];
-    defaultFilters = []
+    defaultFilters = [];
     measure.filters.map( function (filter) {
         dimHierarchy = filter.olapDimHierarchy;
         dimLevel = filter.olapDimLevel;
@@ -384,7 +315,23 @@ function makeQuery(params) {
 
         defaultFilters.push(formatedFilter);
     });
-    // console.log(defaultFilters);
+
+    // Global filters
+    $selects = $('.filter-tab select');
+    $selects.each(function() {
+        dimMember = $(this).find('option:selected').attr('mn');
+        if(dimMember) {
+            dimHierarchy = $(this).attr('hierarchy');
+            dimLevel = $(this).attr('level');
+            formatedFilter = '[{dimHierarchy}].[{dimLevel}].[{dimMember}]'.formatParams({
+                'dimHierarchy': dimHierarchy,
+                'dimLevel': dimLevel,
+                'dimMember': dimMember
+            });
+            defaultFilters.push(formatedFilter);
+        }
+    });
+
     if (filteredWith.length > 0 || defaultFilters.length > 0) {
         dims = {}
         filteredWith.map( function (a) {
@@ -409,9 +356,7 @@ function makeQuery(params) {
 
         filts = filts.concat(defaultFilters);
 
-        // console.log(filts);
         dimlen = filts.length;
-        console.log(filts);
         if (dimlen == 1) {
             filt = filts[0];
         } else {
@@ -449,7 +394,7 @@ function makeQuery(params) {
                 member Measures.[Variacao Anual] as \
                     (Measures.atual - Measures.anterior) / Measures.atual * 100 \
                 member Measures.TendenciaU12M as \
-                    Generate([{dateDimension}].[{startyearU12}].[{startmonthU12}] : [{dateDimension}].[{endyear}].[{endmonth}], \
+                    Generate([{dateDimension}].[{startyearU12}].[{startmonthU12}] : [{dateDimension}].[{endyearU12}].[{endmonthU12}], \
                     Cast(Measures.[{olapMeasure}] + 0 as String), \", \") \
                     {topclausule} \
                 {mn} \
@@ -466,7 +411,8 @@ function makeQuery(params) {
                 'endyear': enddate.year(),'endmonth': enddate.month()+1,'endday': enddate.date(),
                 'startyearLastY': startLastYear.year(),'startmonthLastY': startLastYear.month()+1,'startdayLastY': startLastYear.date(),
                 'endyearLastY': endLastYear.year(),'endmonthLastY': endLastYear.month()+1,'enddayLastY': endLastYear.date(),
-                'startyearU12': startU12.year(),'startmonthU12': startU12.month()+1
+                'startyearU12': startU12.year(),'startmonthU12': startU12.month()+1,
+                'endyearU12': endU12.year(),'endmonthU12': endU12.month()+1
             });
 
     return {'query': query, 'measure': measure, 'dimension': dimension, 'tab': tab, 'filter': filteredWith, 'u12Months': u12Months}
@@ -537,7 +483,7 @@ function successMeasure(xmla, options, response, query) {
         tooltipFormatter: callback
     });
     if(query.selectMeasure) {
-        selectMeasureKey(query.tab.key, query.measure.key);
+        selectMeasureKey(query.tab.key, query.initial_measure_key);
     }
     if(query.buildTables) {
         createTablesForMeasure({
@@ -550,41 +496,7 @@ function successMeasure(xmla, options, response, query) {
 };
 
 
-function QueryBuilder(query, successFunction) {
-    this.query = query;
-    this.successFunction = successFunction;
-    var that = this;
-    this.callback = function (xmla, options, response) {
-        that.successFunction(xmla, options, response, that.query);
-
-    };
-};
-
-QueryBuilder.prototype.run = function(){
-
-    xmla = new Xmla();
-    try {
-        response = xmla.execute({
-            async: true,
-            url: PENTAHO_URL,
-            statement: this.query.query,
-            properties: {DataSourceInfo: "Pentaho Mondrian",
-            Catalog: this.query.measure.olapCatalog,
-            Format: "Tabular"},
-            success: this.callback
-        });
-    }
-    catch(err) {
-        response = null;
-        console.log('error');
-        console.log(err.message);
-        // return null;
-    } finally {
-        return response;
-    }
-};
-
-function buildTabs(tabs) {
+function buildTabs(tabs, global_filters) {
     $tables = $('<div id="tables"><div class="row"></</div>');
     for (var tab_key in tabs) {
         var tab = tabs[tab_key];
@@ -632,18 +544,101 @@ function buildTabs(tabs) {
         }
 
     }
+    for (var global_filter_key in global_filters) {
+        var global_filter = global_filters[global_filter_key];
+        $target.append('<li class="filter-tab"> \
+            <div> \
+            <i class="fa fa-filter"></i> \
+            <select hierarchy="'+global_filter.olapDimHierarchy+'" \
+            level="'+global_filter.olapDimLevel+'" id="'+ global_filter.name +'"> \
+              <option>('+ global_filter.caption +')</option> \
+            </select></div></li>');
+    }
+    $('.filter-tab select').on('change', reload);
 
-    // $target.append('<li class="datepicker-tab"><i class="fa fa-calendar"></i> <input name="daterange" type="text"/></li>');
     $target.append('<li class="datepicker-tab"><div id="reportrange"><i class="fa fa-calendar"></i> <span></span></div></li>');
     initDatePicker();
     initTabFunctions();
     $targetPane.append($tables);
 };
 
+function buildGlobalFilters(params) {
+    query = params.query || null;
+    rows = params.rows || null;
+    $select = $('#'+query.global_filter.name);
+
+    $select.parent().show();
+    $select.empty();
+    $select.append('<option>('+ query.global_filter.caption +')</option>');
+
+    for (var row_key in rows) {
+        var row = rows[row_key];
+        $option = $('<option mn="'+ row[1] +'">'+ row[0] +'</option>')
+        $select.append($option);
+    }
+}
+
+function successGlobalFilters(xmla, options, response, query) {
+    rows = response.fetchAllAsArray();
+    buildGlobalFilters({'query':query, 'rows':rows});
+};
+
+function updateGlobalFilters(measure) {
+    for (var global_filter_key in global_filters) {
+        var global_filter = global_filters[global_filter_key];
+
+        globalOptions = measure.globalFiltersOptions;
+        if(globalOptions) {
+            options = globalOptions[global_filter.name]
+        } else {
+            options = {};
+        }
+
+        disabled = options.disabled;
+        if(options.useOlapDimHierarchy) {
+            measure.olapDimHierarchy = options.useOlapDimHierarchy
+        } else {
+            measure.olapDimHierarchy = global_filter.olapDimHierarchy;
+        }
+        $select = $('#'+global_filter.name);
+        $select.attr('hierarchy', measure.olapDimHierarchy);
+
+        if(disabled) {
+            $select.empty();
+            $select.parent().hide();
+        } else {
+            query = makeGlobalFilterQuery(global_filter, measure);
+            new QueryBuilder(query, successGlobalFilters).run();
+
+        }
+    }
+}
+
+function makeGlobalFilterQuery(global_filter, measure) {
+    globalOptions = measure.globalFiltersOptions;
+
+    query = 'with member Measures.mn as [{olapDimHierarchy}].CurrentMember.Name \
+                select {Measures.mn} on 0, \
+            {[{olapDimHierarchy}].[{olapDimLevel}].Members} on 1 \
+            from [{olapCube}]'.formatParams({
+                'olapDimHierarchy': measure.olapDimHierarchy,
+                'olapDimLevel': global_filter.olapDimLevel,
+                'olapCube': measure.olapCube
+            });
+    return {'query': query, 'measure': measure, 'global_filter': global_filter}
+}
+
 function selectMeasureKey(tab_key, measure_key) {
-    $('.measure-loader').removeClass('measure-selected');
-    $('.measure-selected').removeClass('measure-selected');
-    $($('.measure-loader[measure='+measure_key+'][tab='+tab_key+']')[0]).addClass('measure-selected');
+    same = parseInt($('.measure-selected').attr('measure')) == measure_key &&
+            parseInt($('.measure-selected').attr('tab')) == tab_key;
+
+    if(!same) {
+        $('.measure-loader').removeClass('measure-selected');
+        $('.measure-selected').removeClass('measure-selected');
+        $($('.measure-loader[measure='+measure_key+'][tab='+tab_key+']')[0]).addClass('measure-selected');
+        measure = tabs[tab_key].measures[measure_key];
+        updateGlobalFilters(measure);
+    }
 }
 
 function processTrendline(trendline) {
@@ -697,8 +692,7 @@ function buildMeasure(query, rows) {
         tab_key = $this.attr('tab');
         updateMeasure({
             'tab_key': tab_key,
-            'initial_measure_key': measure_key,
-            'selectMeasure': true
+            'initial_measure_key': measure_key
         });
     });
     return claz
@@ -773,7 +767,8 @@ function buildTable(params) {
 
     if(idx.EXTRA_CAPTIONS.length > 0) {
         $bread = $('<ul class="breadcrumb"/>');
-        $todos = $('<li> <a href="javascript:void(0)" onclick="breadcrumbNavigate.call(this)" class="drillDownLevel caption" level="0" dimension="'+ query.dimension.key +'">Todos</a></li>');
+        $todos = $('<li> <a href="javascript:void(0)" onclick="breadcrumbNavigate.call(this)" class="drillDownLevel caption"\
+                    level="0" dimension="'+ query.dimension.key +'">Todos</a></li>');
         $bread.append($todos);
         // $panelHeading.append(rows[0][key]);
 
@@ -783,7 +778,8 @@ function buildTable(params) {
                 $capt = $('<li><span class="caption" level="'+(key+1)+'">'+rows[0][key]+'</span></li>')
 
             } else {
-                $capt = $('<li><a href="javascript:void(0)" onclick="breadcrumbNavigate.call(this)" class="drillDownLevel caption"  dimension="'+ query.dimension.key +'" level="'+(key+1)+'">'+rows[0][key]+'</a></li>')
+                $capt = $('<li><a href="javascript:void(0)" onclick="breadcrumbNavigate.call(this)" class="drillDownLevel caption" \
+                  dimension="'+ query.dimension.key +'" level="'+(key+1)+'">'+rows[0][key]+'</a></li>')
             }
             $bread.append($capt)
         }
@@ -842,9 +838,15 @@ function buildTable(params) {
         $colBar = $('<div class="col-xs-4"/>');
         measure = numeral(preprocessNumber(row[idx.MEASURE])).format(query.measure.numberFormat);
 
+        if (query.measure.color) {
+            color = query.measure.color.length > 1 ? query.measure.color : '#78aad2';
+        } else {
+            color = '#78aad2';
+        }
+
         $colBar.append($('<div class="progress"/>').append(
         '<div class="progress-bar bar-default" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"\
-            style="width: '+ (row[idx.MEASURE]/max_measure)*100 +'%">'+measure+'</div>'));
+            style="width: '+ (row[idx.MEASURE]/max_measure)*100 +'%; background-color: '+ color +'">'+measure+'</div>'));
         $row.append($colBar);
 
         // Builds the component for variation - + sign for positive - sign for negative.
@@ -888,8 +890,7 @@ function buildTable(params) {
                         'tab_key': $this.attr('tab'),
                         'filter': filterArr.slice(0),
                         'initial_measure_key': $this.attr('measure'),
-                        'initial_dimension_key': $this.attr('dimension'),
-                        'selectMeasure': true
+                        'initial_dimension_key': $this.attr('dimension')
                     });
 
                 }, DELAY);
@@ -931,8 +932,7 @@ function buildTable(params) {
                             'filter': filterArr.slice(0),
                             'initial_measure_key': $this.attr('measure'),
                             'initial_dimension_key': $this.attr('dimension'),
-                            'dimension_key_not_updatable': $this.attr('dimension'),
-                            'selectMeasure': true
+                            'dimension_key_not_updatable': $this.attr('dimension')
                         });
                     }
                 }
@@ -988,7 +988,6 @@ function updateMeasure(params) {
     initial_dimension_key = params.initial_dimension_key;
     dimension_key_not_updatable = params.dimension_key_not_updatable || null;
 
-    selectMeasure = params.selectMeasure || false;
     for (var measure_key in tabs[tab_key].measures) {
         var measure = tab.measures[measure_key];
         query = makeQuery({'measure': measure, 'tab': tab, 'filteredWith': filter});
@@ -1004,7 +1003,7 @@ function updateMeasure(params) {
             query.initial_dimension_key = initial_dimension_key;
             query.filter = filter;
             query.dimension_key_not_updatable = dimension_key_not_updatable;
-            query.selectMeasure = selectMeasure;
+            query.selectMeasure = true;
         }
         new QueryBuilder(query, successMeasure).run();
     }
@@ -1052,7 +1051,7 @@ function createTablesForMeasure(params) {
                 }
 
                 if ($col.length == 0) {
-                    $col = $('<div class="col-lg-4 col-no-padding" id='+(tab.caption+measure.caption+dimension.caption).clean()+'/>');
+                    $col = $('<div class="col-md-4 col-no-padding" id='+(tab.caption+measure.caption+dimension.caption).clean()+'/>');
                     $col = $col.append('<div class="clearfix visible-xs-block visible-sm-block visible-md-block"></div>');
                     $col.addClass('table-loading');
 
@@ -1134,12 +1133,8 @@ $(document).on('mouseenter', ".caption, .measure-caption", function(e) {
             trigger: 'hover'
         });
         $this.tooltip('show');
-
     }
-    // $('.popover').popover('hide');
 });
-
-
 
 
 function initTabFunctions() {
@@ -1148,6 +1143,6 @@ function initTabFunctions() {
         tab_key = $(this).attr('tab');
         tab = tabs[tab_key];
         $('#tables .row').empty();
-        updateMeasure({'tab_key': tab_key, 'initial_measure_key': 0, 'selectMeasure': true});
+        updateMeasure({'tab_key': tab_key, 'initial_measure_key': 0});
     });
 }

@@ -29,9 +29,9 @@ body  {
 }
 
 #app .nav-tabs .datepicker-tab {
-  float:left;
+  float:right;
   padding-top: 5px;
-  margin-left: 100px;
+  margin-left: 15px;
   & i {
     margin-right: 7px;
   }
@@ -43,6 +43,23 @@ body  {
   font-size: 1.05em;
 }
 
+#app .filter-tab {
+  float:right;
+
+  & select {
+    padding: 6px 15px 6px 5px;
+  }
+  & div, select, div i {
+    font-size: 1.05em !important;
+    background-color: #f1f1f1;
+    font-weight: bold;
+  }
+  & i {
+    margin-left: 10px;
+  }
+  margin-left: 15px;
+  padding: 5px 0px 5px 0px;
+}
 
 #app .breadcrumb > li + li:before {
     content: "> ";

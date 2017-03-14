@@ -6639,9 +6639,9 @@ body {
   margin-bottom: 15px; }
 
 #app .nav-tabs .datepicker-tab {
-  float: left;
+  float: right;
   padding-top: 5px;
-  margin-left: 100px; }
+  margin-left: 15px; }
   #app .nav-tabs .datepicker-tab i {
     margin-right: 7px; }
 
@@ -6650,6 +6650,19 @@ body {
   padding: 4px 10px 4px 10px;
   font-weight: bold;
   font-size: 1.05em; }
+
+#app .filter-tab {
+  float: right;
+  margin-left: 15px;
+  padding: 5px 0px 5px 0px; }
+  #app .filter-tab select {
+    padding: 6px 15px 6px 5px; }
+  #app .filter-tab div, #app .filter-tab select, #app .filter-tab div i {
+    font-size: 1.05em !important;
+    background-color: #f1f1f1;
+    font-weight: bold; }
+  #app .filter-tab i {
+    margin-left: 10px; }
 
 #app .breadcrumb > li + li:before {
   content: "> "; }
