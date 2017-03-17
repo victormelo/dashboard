@@ -25,7 +25,9 @@ SPARKLINE_CONFIG['spark-dimension'] = {
     drawNormalOnTop: false,
     spotRadius: 2,
     lastSpot: true,
-    tooltipFormatter: callback
+    tooltipFormatter: callback,
+    tooltipOffsetX: -85,
+    tooltipOffsetY: 20
 };
 
 SPARKLINE_CONFIG['spark-measure'] = {

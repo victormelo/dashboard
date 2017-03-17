@@ -805,7 +805,7 @@ function buildTable(params) {
         }
 
         if(hasDrillDown && level < query.dimension.drillDownBy[0].levels) {
-            $row.append('<div class="col-xs-5 caption no-popover col-no-padding ">\
+            $row.append('<div class="col-xs-5 no-popover col-no-padding ">\
                 <div class="col-xs-11 caption no-popover">'+captionText+'</div> \
                 <div class="col-xs-1 drilldown-link no-popover"><a href="javascript:void(0)"><i class="fa fa-level-down" \
                 style="color: '+ color +'" aria-hidden="true"></i></a></div> \
