@@ -16,7 +16,7 @@ function getColumns(row, offset) {
 
 function preprocessNumber(number) {
     if (number != null) {
-        return parseInt(number);
+        return parseFloat(number).toFixed(2);
     }
     return 0;
 }
@@ -64,7 +64,7 @@ function initPopover($elem, currentRow, drillDownBy, idx, $drillDownData) {
     }
     currentLevel = $drillDownData.attr('level');
     if (currentLevel < maxLevel) {
-        $elem.find('div:not(.caption)').popover({
+        $elem.find('div:not(.no-popover)').popover({
             trigger: 'hover',
             title: caption,
             content: content,
@@ -77,20 +77,6 @@ function initPopover($elem, currentRow, drillDownBy, idx, $drillDownData) {
 }
 var start = moment().startOf('month');
 var end = moment();
-var monthNames = [
-    "Janeiro",
-    "Fevereiro",
-    "Março",
-    "Abril",
-    "Maio",
-    "Junho",
-    "Julho",
-    "Agosto",
-    "Setembro",
-    "Outubro",
-    "Novembro",
-    "Dezembro"
-];
 
 function reload() {
     selected = $('.measure-selected');
@@ -161,7 +147,9 @@ function initDatePicker() {
             last12: 'Os 12 Últimos Meses',
             thisMonthLastYear: monthNames[moment().subtract(1, 'month').month()]+'/'+moment().subtract(1, 'year').year(),
         },
-        alwaysShowCalendars: true
+        alwaysShowCalendars: true,
+        opens: "left"
+
     }, cb);
     cb(start, end);
 
@@ -418,70 +406,32 @@ function makeQuery(params) {
     return {'query': query, 'measure': measure, 'dimension': dimension, 'tab': tab, 'filter': filteredWith, 'u12Months': u12Months}
 }
 
-function sparklineFormatter(sparkline, options, point, query) {
-    value = numeral(point.y).format(query.measure.numberFormat);
-    month = point.x;
-    date = '({monthName}/{year})'.formatParams({
-        'monthName': monthNames[query.u12Months[month].month()],
-        'year': query.u12Months[month].year()
-    });
-    return "<div class=\"jqsfield\"><span style=\"color: " + point.color + "\">&#9679;</span> "
-        + value + " " + date + "</div>";
-}
-
 function successTable(xmla, options, response, query) {
     rows = response.fetchAllAsArray();
-    sparkline_class = buildTable({'query':query, 'rows':rows});
-    // Here I just instantiate the sparkline object.
-    var maxColor = query.measure.orientation == 'up' ? '#7fe174' : '#fd7159';
-    var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
-    callback = function (xmla, options, response) {
-        return sparklineFormatter(xmla, options, response, query);
+    buildTable({'query':query, 'rows':rows});
 
-    };
-
-    $('.'+sparkline_class).sparkline('html', {
-        width:'100%',
-        type: 'line',
-        lineColor: '#8da4af',
-        highlightSpotColor: '#8da4af',
-        spotColor: null,
-        minSpotColor: minColor,
-        maxSpotColor: maxColor,
-        fillColor: null,
-        lineWidth: 1,
-        spotRadius: 3,
-        drawNormalOnTop: false,
-        tooltipFormatter: callback
-    });
+    renderSparkline('spark-dimension');
+    tweakProgressBar();
 
 };
 
+renderSparkline = function(claz) {
+    options = SPARKLINE_CONFIG[claz];
+    $('.'+claz).each(function(i, obj) {
+        values = $(this).data('values').split(',');
+        options.spotColor = $(this).data('measureColor') || undefined;
+        options.minSpotColor = $(this).data('minColor');
+        options.maxSpotColor = $(this).data('maxColor');
+        $(this).sparkline(values, options);
+    });
+}
+
 function successMeasure(xmla, options, response, query) {
     rows = response.fetchAllAsArray();
-    sparkline_class = buildMeasure(query, rows);
-    // Here I just instantiate the sparkline object.
-    var maxColor = query.measure.orientation == 'up' ? '#7fe174' : '#fd7159';
-    var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
+    buildMeasure(query, rows);
 
-    callback = function (xmla, options, response) {
-        return sparklineFormatter(xmla, options, response, query);
-    };
+    renderSparkline('spark-measure');
 
-    result = $('.'+sparkline_class).sparkline('html', {
-        width:'100%',
-        type: 'line',
-        lineColor: '#ffffff',
-        highlightSpotColor: '#ffffff',
-        spotColor: null,
-        minSpotColor: minColor,
-        maxSpotColor: maxColor,
-        fillColor: null,
-        lineWidth: 1,
-        spotRadius: 3,
-        drawNormalOnTop: false,
-        tooltipFormatter: callback
-    });
     if(query.selectMeasure) {
         selectMeasureKey(query.tab.key, query.initial_measure_key);
     }
@@ -521,6 +471,9 @@ function buildTabs(tabs, global_filters) {
             }
             $col = $('<div style="background-color: '+color+';" class="col-xs-6 col-sm-4 col-md-3 col-lg-2 measure-loader" \
                 measure="'+ measure_key +'" tab="'+ tab_key +'" id='+(tab.caption+measure.caption).clean()+'/>');
+
+            $col.append($('<div class="spinner-measure"/>'));
+
             $row.append($col);
         }
 
@@ -554,6 +507,8 @@ function buildTabs(tabs, global_filters) {
               <option>('+ global_filter.caption +')</option> \
             </select></div></li>');
     }
+    measure = tabs[0].measures[0];
+    updateGlobalFilters(measure, true);
     $('.filter-tab select').on('change', reload);
 
     $target.append('<li class="datepicker-tab"><div id="reportrange"><i class="fa fa-calendar"></i> <span></span></div></li>');
@@ -583,7 +538,7 @@ function successGlobalFilters(xmla, options, response, query) {
     buildGlobalFilters({'query':query, 'rows':rows});
 };
 
-function updateGlobalFilters(measure) {
+function updateGlobalFilters(measure, rebuild) {
     for (var global_filter_key in global_filters) {
         var global_filter = global_filters[global_filter_key];
 
@@ -604,12 +559,13 @@ function updateGlobalFilters(measure) {
         $select.attr('hierarchy', measure.olapDimHierarchy);
 
         if(disabled) {
-            $select.empty();
+            $select.val($select.find('option:first').val());
             $select.parent().hide();
-        } else {
+        } else if(rebuild) {
             query = makeGlobalFilterQuery(global_filter, measure);
             new QueryBuilder(query, successGlobalFilters).run();
-
+        } else {
+            $select.parent().hide();
         }
     }
 }
@@ -636,8 +592,6 @@ function selectMeasureKey(tab_key, measure_key) {
         $('.measure-loader').removeClass('measure-selected');
         $('.measure-selected').removeClass('measure-selected');
         $($('.measure-loader[measure='+measure_key+'][tab='+tab_key+']')[0]).addClass('measure-selected');
-        measure = tabs[tab_key].measures[measure_key];
-        updateGlobalFilters(measure);
     }
 }
 
@@ -649,7 +603,6 @@ function processTrendline(trendline) {
 
 function buildMeasure(query, rows) {
     row = rows[0];
-
     $target = $('#' + (query.tab.caption+query.measure.caption).clean());
     $target.empty();
     // $a=$('<a class="measure-loader" href="javascript:void(0)" \
@@ -676,10 +629,23 @@ function buildMeasure(query, rows) {
     $number.append($measure_caption);
     $number.append($measure_measure);
 
-    claz = ('sparklines' + query.measure.caption+query.tab.caption).clean();
-    $graph = '<div class="graph"> \
-                <span class="'+claz+'"><!--'+row[TENDENCIA_MEASURE]+'--></span> \
-              </div>';
+    $graph = $('<div class="graph"/>');
+    $trendline = $('<span class="spark-measure"></span>');
+    $trendline.data('u12Months', query.u12Months);
+    $trendline.data('values', row[TENDENCIA_MEASURE]);
+    $trendline.data('format', query.measure.numberFormat);
+    var maxColor = query.measure.orientation == 'up' ? '#7fe174' : '#fd7159';
+    var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
+    if (query.measure.color) {
+        measure_color = query.measure.color.length > 1 ? query.measure.color : '#78aad2';
+    } else {
+        measure_color = '#78aad2';
+    }
+
+    $trendline.data('minColor', minColor);
+    $trendline.data('maxColor', maxColor);
+    $trendline.data('measureColor', measure_color);
+    $graph.append($trendline);
 
     $card = $('<div class="card-measure"/>');
     $target.append($card);
@@ -692,10 +658,10 @@ function buildMeasure(query, rows) {
         tab_key = $this.attr('tab');
         updateMeasure({
             'tab_key': tab_key,
-            'initial_measure_key': measure_key
+            'initial_measure_key': measure_key,
+            'shouldUpdateAll': false
         });
     });
-    return claz
 };
 
 function getVariationSign(measure, variation) {
@@ -792,7 +758,6 @@ function buildTable(params) {
         hasDrillDown = true;
     }
 
-    claz = ('dimension' + query.dimension.caption + query.measure.caption+query.tab.caption).clean();
     max_measure = rows.reduce(function(max, arr) {
         return Math.max(max, arr[idx.MEASURE]);
     }, -Infinity);
@@ -832,31 +797,50 @@ function buildTable(params) {
             tab="'+query.tab.key+'"  measure="'+query.measure.key+'"  dimension="'+query.dimension.key+'" \
             name="'+row[idx.NAME]+'" />');
 
-        $row.append('<div class="col-xs-4 caption">' + captionText + '</div>');
-
-        // Builds the component for the measure - a bar
-        $colBar = $('<div class="col-xs-4"/>');
-        measure = numeral(preprocessNumber(row[idx.MEASURE])).format(query.measure.numberFormat);
-
         if (query.measure.color) {
             color = query.measure.color.length > 1 ? query.measure.color : '#78aad2';
         } else {
             color = '#78aad2';
         }
 
+        if(hasDrillDown && level < query.dimension.drillDownBy[0].levels) {
+            console.log(level, query.dimension.drillDownBy[0].levels);
+            $row.append('<div class="col-xs-5 caption no-popover col-no-padding ">\
+                <div class="col-xs-11 caption no-popover">'+captionText+'</div> \
+                <div class="col-xs-1 drilldown-link no-popover"><a href="javascript:void(0)"><i class="fa fa-level-down" \
+                style="color: '+ color +'" aria-hidden="true"></i></a></div> \
+                </div>');
+        } else {
+            $row.append('<div class="col-xs-5 caption no-popover">' + captionText + '</div>');
+        }
+
+        // Builds the component for the measure - a bar
+        $colBar = $('<div class="col-xs-4 col-no-padding "/>');
+        measure = numeral(preprocessNumber(row[idx.MEASURE])).format(query.measure.numberFormat);
+
+
         $colBar.append($('<div class="progress"/>').append(
         '<div class="progress-bar bar-default" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"\
-            style="width: '+ (row[idx.MEASURE]/max_measure)*100 +'%; background-color: '+ color +'">'+measure+'</div>'));
+            style="width: '+ (row[idx.MEASURE]/max_measure)*100 +'%; background-color: '+ color +'"><span>'+measure+'</span></div>'));
         $row.append($colBar);
 
         // Builds the component for variation - + sign for positive - sign for negative.
         variation = parseInt(preprocessNumber(row[idx.VARIACAO]))
         sign = getVariationSign(query.measure, variation);
         // variation = query.measure.numberFormat;
-        $row.append('<div class="col-xs-2 col-nowrap">' + '<i class="fa fa-lg fa-caret-'+ sign +'" aria-hidden="true"></i> ' + variation + '%</div>');
+        $row.append('<div class="col-xs-1 col-nowrap col-no-padding ">' + '<i class="fa fa-lg fa-caret-'+ sign +'" aria-hidden="true"></i> ' + variation + '%</div>');
 
         // Builds the component for variation - a sparkline
-        $spark = $('<div class="col-xs-2"/>').append('<span class="'+claz+'"><!--'+row[idx.TENDENCIA]+'--></span>');
+        $trendline = $('<span class="spark-dimension"></span>');
+        $trendline.data('values', row[idx.TENDENCIA]);
+        $trendline.data('u12Months', query.u12Months);
+
+        $trendline.data('format', query.measure.numberFormat);
+        var maxColor = query.measure.orientation == 'up' ? '#7fe174' : '#fd7159';
+        var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
+        $trendline.data('minColor', minColor);
+        $trendline.data('maxColor', maxColor);
+        $spark = $('<div class="col-xs-2 col-no-padding "/>').append($trendline);
 
         if (hasDrillDown) {
             initPopover($row, row, query.dimension.drillDownBy, idx, $col);
@@ -869,6 +853,7 @@ function buildTable(params) {
     $panel.append($panelBody);
     $col.append($panel);
     $col.removeClass('table-loading');
+
     $(".table-box .selectable").unbind('click');
     var DELAY = 350, clicks = 0, timer = null;
 
@@ -902,48 +887,56 @@ function buildTable(params) {
                 clicks = -1;
                 // double click code
                 if (dimension.drillDownBy) {
-                    tab = tabs[$this.attr('tab')];
-                    measure = tab.measures[$this.attr('measure')];
-                    f = getDimensionFilters(measure, exclude=$this.attr('dimension'));
-                    filterArr = f.filterArr
-                    excluded = f.excluded
-
-                    $dimensionData = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
-                    drillDownCurrent = $dimensionData.attr('drilldowncurrent');
-                    level = $dimensionData.attr('level');
-                    level = parseInt($dimensionData.attr('level'));
-                    level += 1;
-
-                    if (level <= dimension.drillDownBy[0].levels) {
-                        updateTableWithDrillDown({
-                            'tab_key': $this.attr('tab'),
-                            'measure_key': $this.attr('measure'),
-                            'dimension_key': $this.attr('dimension'),
-                            'dimensionName': $this.attr('name'),
-                            'drillDownCurrent': drillDownCurrent,
-                            'level': level,
-                            'filter': filterArr.slice(0)
-                        });
-                    }
-
-                    if(excluded) {
-                        updateMeasure({
-                            'tab_key': $this.attr('tab'),
-                            'filter': filterArr.slice(0),
-                            'initial_measure_key': $this.attr('measure'),
-                            'initial_dimension_key': $this.attr('dimension'),
-                            'dimension_key_not_updatable': $this.attr('dimension')
-                        });
-                    }
+                    doDrillDown($this);
                 }
             }
             clicks++;
         }
     });
 
-    return claz;
+    $('.table-box .selectable .drilldown-link').click(function(e) {
+        e.stopPropagation();
+        doDrillDown($($(this).parent().parent()));
+    });
 
 };
+
+function doDrillDown(elem) {
+    tab = tabs[elem.attr('tab')];
+    measure = tab.measures[elem.attr('measure')];
+    dimension = measure.dimensions[elem.attr('dimension')];
+    f = getDimensionFilters(measure, exclude=elem.attr('dimension'));
+    filterArr = f.filterArr
+    excluded = f.excluded
+
+    $dimensionData = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
+    drillDownCurrent = $dimensionData.attr('drilldowncurrent');
+    level = $dimensionData.attr('level');
+    level = parseInt($dimensionData.attr('level'));
+    level += 1;
+
+    if (level <= dimension.drillDownBy[0].levels) {
+        updateTableWithDrillDown({
+            'tab_key': elem.attr('tab'),
+            'measure_key': elem.attr('measure'),
+            'dimension_key': elem.attr('dimension'),
+            'dimensionName': elem.attr('name'),
+            'drillDownCurrent': drillDownCurrent,
+            'level': level,
+            'filter': filterArr.slice(0)
+        });
+    }
+
+    if(excluded) {
+        updateMeasure({
+            'tab_key': elem.attr('tab'),
+            'filter': filterArr.slice(0),
+            'initial_measure_key': elem.attr('measure'),
+            'initial_dimension_key': elem.attr('dimension'),
+            'dimension_key_not_updatable': elem.attr('dimension')
+        });
+    }
+}
 
 function updateTableWithDrillDown(params) {
     var tab_key = params.tab_key;
@@ -987,14 +980,24 @@ function updateMeasure(params) {
     initial_measure_key = params.initial_measure_key;
     initial_dimension_key = params.initial_dimension_key;
     dimension_key_not_updatable = params.dimension_key_not_updatable || null;
-
-    for (var measure_key in tabs[tab_key].measures) {
-        var measure = tab.measures[measure_key];
+    shouldUpdateAll = params.shouldUpdateAll == null || params.shouldUpdateAll ? true : false;
+    tab = tabs[tab_key]
+    measures = tab.measures
+    thisMeasure = measures[initial_measure_key];
+    filterArr = getDimensionFilters(thisMeasure).filterArr;
+    if(!shouldUpdateAll && !(filter.length>0 || filterArr.length>0)) {
+        measures = [thisMeasure];
+    }
+    for (var measure_key in measures) {
+        var measure = measures[measure_key];
+        $target = $('#' + (tab.caption+measure.caption).clean());
+        $target.empty();
+        $target.append($('<div class="spinner-measure"/>'));
         query = makeQuery({'measure': measure, 'tab': tab, 'filteredWith': filter});
         query.filter = filter;
         query.tab.key = tab_key
         query.measure.key = measure_key
-        if (measure_key == initial_measure_key) {
+        if (measure_key == initial_measure_key || measures.length==1) {
             // On the success function the method createTablesForMeasure is called,
             // with those parameters.
             query.buildTables = true;
@@ -1054,8 +1057,11 @@ function createTablesForMeasure(params) {
                     $col = $('<div class="col-md-4 col-no-padding" id='+(tab.caption+measure.caption+dimension.caption).clean()+'/>');
                     $col = $col.append('<div class="clearfix visible-xs-block visible-sm-block visible-md-block"></div>');
                     $col.addClass('table-loading');
-
+                    $col.append($('<div class="spinner"/>'));
                     $divTargetTables.append($col);
+                } else {
+                    $col.find('.panel-body').empty();
+                    $col.find('.panel-body').append($('<div class="spinner"/>'));
                 }
                 query = makeQuery({
                     'measure': measure,
@@ -1078,7 +1084,7 @@ function createTablesForMeasure(params) {
 
     } else {
         for (var dim_key in measure.dimensions) {
-            if(dim_key != dimension_key_not_updatable) {
+            if(dim_key != dimension_key && dim_key != dimension_key_not_updatable) {
                 var dimension = measure.dimensions[dim_key];
                 var $col = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
                 level = null;
@@ -1090,7 +1096,11 @@ function createTablesForMeasure(params) {
                     drillDown = true
                     colDrillDownName = getDrillDownName($col);
                 }
+
+                $col.find('.panel-body').empty();
+                $col.find('.panel-body').append($('<div class="spinner"/>'));
                 filteredWith = [];
+
                 if (filterArr) {
                     filteredWith = filterArr.slice(0).filter(function (el) {
                         return el.dimension.caption != dimension.caption;
@@ -1129,7 +1139,7 @@ $(document).on('mouseenter', ".caption, .measure-caption", function(e) {
     if(hasOverflow($this)) {
         $this.tooltip({
             title: $this.text(),
-            placement: "bottom",
+            placement: "right",
             trigger: 'hover'
         });
         $this.tooltip('show');
@@ -1146,3 +1156,30 @@ function initTabFunctions() {
         updateMeasure({'tab_key': tab_key, 'initial_measure_key': 0});
     });
 }
+
+redrawSparkline = function() {
+    renderSparkline('spark-dimension');
+    renderSparkline('spark-measure');
+}
+tweakProgressBar = function() {
+    $('.bar-default span').each(function(){
+        if($(this).width() > $(this).parent().width()){
+            $(this).css("color", '#aaa');
+            $(this).css("position", "relative");
+            $(this).css("left",$(this).parent().width()+2+"px");
+        } else {
+            $(this).css("color","");
+            $(this).css("position", "");
+            $(this).css("left", "");
+        }
+    });
+}
+
+var sparkResize;
+var progressbarResize;
+$(window).resize(function(e) {
+    clearTimeout(sparkResize);
+    clearTimeout(progressbarResize);
+    sparkResize = setTimeout(redrawSparkline, 200);
+    progressbarResize = setTimeout(tweakProgressBar, 200);
+});

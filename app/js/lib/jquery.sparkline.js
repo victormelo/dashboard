@@ -252,7 +252,8 @@
             },
             // Defaults for line charts
             line: {
-                spotColor: '#f80',
+                spotColor: undefined,
+                spotLineColor: undefined,
                 highlightSpotColor: '#5f5',
                 highlightLineColor: '#f22',
                 spotRadius: 1.5,
@@ -1551,21 +1552,21 @@
                 // adjust the canvas size as required so that spots will fit
                 hlSpotsEnabled = options.get('highlightSpotColor') &&  !options.get('disableInteraction');
                 if (hlSpotsEnabled || options.get('minSpotColor') || (options.get('spotColor') && yvalues[yvallast] === this.miny)) {
-                    canvasHeight -= Math.ceil(spotRadius);
+                    canvasHeight -= Math.ceil(spotRadius)+4;
                 }
                 if (hlSpotsEnabled || options.get('maxSpotColor') || (options.get('spotColor') && yvalues[yvallast] === this.maxy)) {
-                    canvasHeight -= Math.ceil(spotRadius);
-                    canvasTop += Math.ceil(spotRadius);
+                    canvasHeight -= Math.ceil(spotRadius)+4;
+                    canvasTop += Math.ceil(spotRadius)+4;
                 }
                 if (hlSpotsEnabled ||
                      ((options.get('minSpotColor') || options.get('maxSpotColor')) && (yvalues[0] === this.miny || yvalues[0] === this.maxy))) {
-                    canvasLeft += Math.ceil(spotRadius);
-                    canvasWidth -= Math.ceil(spotRadius);
+                    canvasLeft += Math.ceil(spotRadius)+4;
+                    canvasWidth -= Math.ceil(spotRadius)+4;
                 }
                 if (hlSpotsEnabled || options.get('spotColor') ||
                     (options.get('minSpotColor') || options.get('maxSpotColor') &&
                         (yvalues[yvallast] === this.miny || yvalues[yvallast] === this.maxy))) {
-                    canvasWidth -= Math.ceil(spotRadius);
+                    canvasWidth -= Math.ceil(spotRadius)+4;
                 }
             }
 
@@ -1668,12 +1669,19 @@
                 }
 
             }
-            if (spotRadius && options.get('spotColor') && yvalues[yvallast] !== null) {
-                target.drawCircle(canvasLeft + Math.round((xvalues[xvalues.length - 1] - this.minx) * (canvasWidth / rangex)),
-                    canvasTop + Math.round(canvasHeight - (canvasHeight * ((yvalues[yvallast] - this.miny) / rangey))),
-                    spotRadius, undefined,
-                    options.get('spotColor')).append();
+
+
+            for (i = 0; i < yvalcount; i++) {
+                x = xvalues[i];
+                y = yvalues[i];
+                if (spotRadius && options.get('spotColor')) {
+                    target.drawCircle(canvasLeft + Math.round((x - this.minx) * (canvasWidth / rangex)),
+                        canvasTop + Math.round(canvasHeight - (canvasHeight * ((y - this.miny) / rangey))),
+                        spotRadius, options.get('spotLineColor'), options.get('spotColor'), 2
+                        ).append();
+                }
             }
+
             if (this.maxy !== this.minyorg) {
                 if (spotRadius && options.get('minSpotColor')) {
                     x = xvalues[$.inArray(this.minyorg, yvalues)];
