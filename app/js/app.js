@@ -21,7 +21,6 @@ function preprocessNumber(number) {
     return 0;
 }
 
-
 // Get string parameter
 var GET = {};
 
