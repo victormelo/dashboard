@@ -23,6 +23,8 @@ SPARKLINE_CONFIG['spark-dimension'] = {
     lineWidth: 1,
     spotRadius: 2,
     drawNormalOnTop: false,
+    spotRadius: 2,
+    lastSpot: true,
     tooltipFormatter: callback
 };
 

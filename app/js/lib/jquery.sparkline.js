@@ -1551,22 +1551,26 @@
             if (spotRadius) {
                 // adjust the canvas size as required so that spots will fit
                 hlSpotsEnabled = options.get('highlightSpotColor') &&  !options.get('disableInteraction');
+                var offset = 0;
+                if (!options.get('lastSpot'))
+                    offset= 1;
+
                 if (hlSpotsEnabled || options.get('minSpotColor') || (options.get('spotColor') && yvalues[yvallast] === this.miny)) {
-                    canvasHeight -= Math.ceil(spotRadius)+4;
+                    canvasHeight -= Math.ceil(spotRadius)+offset;
                 }
                 if (hlSpotsEnabled || options.get('maxSpotColor') || (options.get('spotColor') && yvalues[yvallast] === this.maxy)) {
-                    canvasHeight -= Math.ceil(spotRadius)+4;
-                    canvasTop += Math.ceil(spotRadius)+4;
+                    canvasHeight -= Math.ceil(spotRadius)+offset;
+                    canvasTop += Math.ceil(spotRadius)+offset;
                 }
                 if (hlSpotsEnabled ||
                      ((options.get('minSpotColor') || options.get('maxSpotColor')) && (yvalues[0] === this.miny || yvalues[0] === this.maxy))) {
-                    canvasLeft += Math.ceil(spotRadius)+4;
-                    canvasWidth -= Math.ceil(spotRadius)+4;
+                    canvasLeft += Math.ceil(spotRadius)+offset;
+                    canvasWidth -= Math.ceil(spotRadius)+offset;
                 }
                 if (hlSpotsEnabled || options.get('spotColor') ||
                     (options.get('minSpotColor') || options.get('maxSpotColor') &&
                         (yvalues[yvallast] === this.miny || yvalues[yvallast] === this.maxy))) {
-                    canvasWidth -= Math.ceil(spotRadius)+4;
+                    canvasWidth -= Math.ceil(spotRadius)+offset;
                 }
             }
 
@@ -1670,11 +1674,10 @@
 
             }
 
-
             for (i = 0; i < yvalcount; i++) {
                 x = xvalues[i];
                 y = yvalues[i];
-                if (spotRadius && options.get('spotColor')) {
+                if (spotRadius && options.get('spotColor') && !options.get('lastSpot')) {
                     target.drawCircle(canvasLeft + Math.round((x - this.minx) * (canvasWidth / rangex)),
                         canvasTop + Math.round(canvasHeight - (canvasHeight * ((y - this.miny) / rangey))),
                         spotRadius, options.get('spotLineColor'), options.get('spotColor'), 2

@@ -16,7 +16,7 @@ function getColumns(row, offset) {
 
 function preprocessNumber(number) {
     if (number != null) {
-        return parseFloat(number).toFixed(2);
+        return parseFloat(number.toFixed(2));
     }
     return 0;
 }
@@ -616,6 +616,7 @@ function buildMeasure(query, rows) {
     $number = $('<div class="number"/>');
     measure_measure = preprocessNumber(row[MEASURE_MEASURE]);
     measure_measure = numeral(measure_measure).format(query.measure.numberFormat);
+
     // variation = numeral(variation).format(query.measure.numberFormat);
     $variation = $('<small class="variation-right pull-right"><i class="fa fa-lg fa-caret-'+sign+'" aria-hidden="true"></i> '+variation+'%</small>');
 
@@ -804,7 +805,6 @@ function buildTable(params) {
         }
 
         if(hasDrillDown && level < query.dimension.drillDownBy[0].levels) {
-            console.log(level, query.dimension.drillDownBy[0].levels);
             $row.append('<div class="col-xs-5 caption no-popover col-no-padding ">\
                 <div class="col-xs-11 caption no-popover">'+captionText+'</div> \
                 <div class="col-xs-1 drilldown-link no-popover"><a href="javascript:void(0)"><i class="fa fa-level-down" \
@@ -840,7 +840,7 @@ function buildTable(params) {
         var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
         $trendline.data('minColor', minColor);
         $trendline.data('maxColor', maxColor);
-        $spark = $('<div class="col-xs-2 col-no-padding "/>').append($trendline);
+        $spark = $('<div class="col-xs-2"/>').append($trendline);
 
         if (hasDrillDown) {
             initPopover($row, row, query.dimension.drillDownBy, idx, $col);
@@ -1046,7 +1046,6 @@ function createTablesForMeasure(params) {
                 level = null;
                 drillDown = false;
                 colDrillDownName = null;
-                // console.log($col.attr('level'));
                 if($col.attr('level') != null) {
                     level = parseInt($col.attr('level'));
                     drillDown = true
@@ -1090,7 +1089,6 @@ function createTablesForMeasure(params) {
                 level = null;
                 drillDown = false;
                 colDrillDownName = null;
-                // console.log($col.attr('level'));
                 if($col.attr('level') != null) {
                     level = parseInt($col.attr('level'));
                     drillDown = true
