@@ -28,3 +28,15 @@ String.prototype.formatParams = function(placeholders) {
     }
     return s;
 };
+
+String.prototype.insert = function (index, string) {
+  if (index > 0)
+    return this.substring(0, index) + string + this.substring(index, this.length);
+  else
+    return string + this;
+};
+
+
+String.prototype.removeAt = function(index, charcount) {
+  return this.substr(0, index) + this.substr(index + charcount);
+}

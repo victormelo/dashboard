@@ -8,8 +8,31 @@ function QueryBuilder(query, successFunction) {
 };
 
 QueryBuilder.prototype.run = function(){
+    var thisone = this;
+    var xmla = new Xmla({
+        async: true,
+        listeners: {
+            events: Xmla.EVENT_ERROR,
+            handler: function(eventName, eventData, xmla){
+                var details = '';
+                if (thisone.query.dimension) {
+                    details = 'Erro ao executar consulta à  '+thisone.query.dimension.caption+' por '+ thisone.query.measure.caption;
+                } else if(thisone.query.global_filter) {
+                    details = 'Erro ao executar consulta à ' + thisone.query.global_filter.caption;
+                } else {
+                    details = 'Erro ao executar consulta à  ' + thisone.query.measure.caption;
+                }
 
-    xmla = new Xmla();
+                $.toast({
+                    heading: 'Oops',
+                    text: details,
+                    position: 'bottom-right',
+                    icon: 'error',
+                    hideAfter: 8000
+                })
+            }
+        }
+    });
     try {
         response = xmla.execute({
             async: true,
@@ -24,7 +47,6 @@ QueryBuilder.prototype.run = function(){
     catch(err) {
         response = null;
         console.log('error');
-        console.log(err.message);
         // return null;
     } finally {
         return response;

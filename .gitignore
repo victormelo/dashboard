@@ -1,3 +1,7 @@
 dist
 node_modules
 doc
+*.zip
+*.log.*
+*.log
+video-dash2/

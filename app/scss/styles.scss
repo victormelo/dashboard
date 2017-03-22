@@ -331,3 +331,35 @@ body  {
   0%    { transform: rotate(0deg); }
   100%  { transform: rotate(360deg); }
 }
+
+
+#app .anchor {
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    margin: 15px;
+    padding:0px 0.5rem;
+    text-align: right;
+    background-color: #323232;
+    border-radius: 2px;
+    color: #FFF;
+    width:auto;
+}
+
+
+// Bigger modals
+
+#app .modal-dialog {
+  width: 90%;
+  height: 90%;
+  padding: 0;
+}
+
+#app .modal-content {
+  height:100%;
+  border-radius: 0;
+}
+
+#app .modal-header, #app .modal-body, #app .modal-header button {
+  padding: 2px;
+}

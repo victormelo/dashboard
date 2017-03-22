@@ -4,26 +4,39 @@ MEASURE_MEASURE = 0
 VARIACAO_MEASURE = 1
 TENDENCIA_MEASURE = 2
 
-function getColumns(row, offset) {
-    var offset = offset || 0;
+function getColumns(row, query) {
+    var offset = query.level || 0;
     // Tamanho de rows de consulta normal
     extra_captions = []
     for (var i = 0; i < offset; i++) {
         extra_captions.push(i);
     }
-    return {CAPTION: 0+offset, NAME: 1+offset, MEASURE: 2+offset, VARIACAO: 3+offset, TENDENCIA: 4+offset, EXTRA_CAPTIONS: extra_captions};
+    minusMeasure = !query.dimension.visualizationOptions.showDataBar;
+    minusVariacao = !query.dimension.visualizationOptions.showYearlyVariation;
+    minusTendencia = !query.dimension.visualizationOptions.showTrendLine;
+
+    return {CAPTION: 0+offset,
+            NAME: 1+offset,
+            MEASURE: 2+offset,
+            VARIACAO: 3+offset - minusMeasure,
+            TENDENCIA: 4+offset - minusVariacao - minusMeasure,
+            EXTRA_CAPTIONS: extra_captions};
 }
 
 function preprocessNumber(number) {
     if (number != null) {
-        return parseFloat(number.toFixed(2));
+        try {
+            preprocessed = parseFloat(number.toFixed(2));
+            return preprocessed;
+        } catch(err) {
+            return 0;
+        }
     }
     return 0;
 }
 
 // Get string parameter
 var GET = {};
-
 if (location.search) {
     var parts = location.search.substring(1).split('&');
 
@@ -35,18 +48,69 @@ if (location.search) {
 }
 
 tabs = null;
-// $.get( "dash.json", function( data ) {
 
 console.log(GET);
-d = GET.d || 'ovvi';
+d = GET.d || 'ovvt';
 jsonURL = '/pentaho/plugin/ppa/api/dashmd?paramd={d}'.formatParams({'d': d});
 console.log(jsonURL)
+// $.get( "dash.json", function( data ) {
 $.getJSON(jsonURL, function( data ) {
     tabs = data.tabs;
     global_filters = data.filters
     buildTabs(tabs, global_filters);
+    try {
+        buildAnchors(data.dashOptions.links, global_filters);
+    } catch(err) {
+        console.log('no anchor links defined');
+    }
+    // setInterval(reload, data.dashOptions.refreshTime*1000);
 
 });
+
+function buildAnchors(links, global_filters) {
+    $target = $('#app');
+    for (var link_key in links) {
+        var link = links[link_key];
+        $target.append('<a href="javascript:void(0)" anchorUrl='+link.anchorUrl+' class="anchor">'+link.caption+'</a>')
+        $target.append(
+        '<div class="modal fade" tabindex="-1" role="dialog" id="'+link.caption.clean()+'"> \
+          <div class="modal-dialog modal-lg" role="document"> \
+            <div class="modal-content"> \
+                <div class="modal-header"> \
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> \
+                </div> \
+                <div class="modal-body"> \
+                    <iframe src="" style="zoom:0.60" width="99.6%" height="768px" frameborder="0"></iframe> \
+                </div> \
+            </div> \
+          </div> \
+        </div>');
+    }
+
+    $('.anchor').click(function() {
+        $this = $(this);
+        url = $this.attr('anchorUrl');
+
+        var indices = [];
+        for(var i=0; i<url.length;i++) {
+            if (url[i] === "*") indices.push(i);
+        }
+        for (var i = indices.length - 1; i >= 0; i--) {
+            var global_filter = global_filters[i];
+            var dimMember = $('#'+global_filter.name).find('option:selected').attr('mn');
+            url = url.removeAt(indices[i], 1);
+
+            if(dimMember)
+                url = url.insert(indices[i], escape(dimMember));
+        }
+        $this = $(this)
+        $('#'+$this.text().clean()).modal('show');
+        $('#'+$this.text().clean()).on('shown.bs.modal', function () {
+            $('#'+$this.text().clean() + ' iframe').attr("src", url);
+        });
+
+    });
+}
 
 function initPopover($elem, currentRow, drillDownBy, idx, $drillDownData) {
 
@@ -87,7 +151,8 @@ function reload() {
     updateMeasure({
         'tab_key': tab_key,
         'filter': filterArr.slice(0),
-        'initial_measure_key': measure_key
+        'initial_measure_key': measure_key,
+        'reloading': true
     });
 }
 
@@ -204,9 +269,16 @@ function makeQuery(params) {
     drillDown = params.drillDown || false;
     drillDownName = params.drillDownName || null;
     topclausule = '';
-    select = '';
+    selectComplement = '';
     mn = '';
     selectMn = '';
+
+    selectMainMeasure = 'Measures.[{olapMeasure}]'.formatParams({'olapMeasure': measure.olapMeasure});
+    selectYearlyVariation = 'Measures.[Variacao Anual]';
+    selectTrendline = 'Measures.TendenciaU12M';
+
+    select = [selectMainMeasure, selectYearlyVariation, selectTrendline].join(', ');
+
     if ($('#reportrange').length > 0) {
         startdate = $('#reportrange').data('daterangepicker').startDate;
         enddate = $('#reportrange').data('daterangepicker').endDate;
@@ -233,10 +305,21 @@ function makeQuery(params) {
         'endyear': enddate.year(),'endmonth': enddate.month()+1,'endday': enddate.date()
     });
     if(dimension != null) {
+        selectArr = []
+        if (dimension.visualizationOptions.showDataBar) {
+            selectArr.push(selectMainMeasure);
+        }
+        if (dimension.visualizationOptions.showYearlyVariation) {
+            selectArr.push(selectYearlyVariation);
+        }
+        if (dimension.visualizationOptions.showTrendLine) {
+            selectArr.push(selectTrendline);
+        }
+        select = selectArr.join(', ')
         dim = '[{olapDimHierarchy}].[{olapDimLevel}].Members'.formatParams(
                                 {'olapDimHierarchy': dimension.olapDimHierarchy, 'olapDimLevel': dimension.olapDimLevel});
         // dimHierarchy = '[{olapDimHierarchy}]'.formatParams({'olapDimHierarchy': dimension.olapDimHierarchy});
-        select = ', non empty Order({dim}, Measures.atual, BDESC) on 1'.formatParams(
+        selectComplement = ', non empty Order({dim}, Measures.atual, BDESC) on 1'.formatParams(
                                 {'dim': dim});
 
 
@@ -258,12 +341,12 @@ function makeQuery(params) {
 
                 // dimHierarchy = '{drillDownCurrent}'.formatParams(
                                     // {'drillDownCurrent': drillDownCurrent});
-                select = ', non empty {dim} on 1'.formatParams(
+                selectComplement = ', non empty {dim} on 1'.formatParams(
                                     {'dim': dim});
 
             } else if(drillDownName) {
                 dim = drillDownName+'.Children'
-                select = ', non empty {dim}.Children on 1'.formatParams(
+                selectComplement = ', non empty {dim}.Children on 1'.formatParams(
                                 {'dim': dim});
 
             }
@@ -280,7 +363,7 @@ function makeQuery(params) {
                                     Measures.atual > 0)'.formatParams(
                         {'olapDimHierarchy': dimension.olapDimHierarchy, 'dim': dim,
                         'topFunction': dimension.topFunction, 'topNumber': dimension.topNumber});
-            select = ', non empty [Top+Outros] on 1';
+            selectComplement = ', non empty [Top+Outros] on 1';
         }
         mn = ('member Measures.[mn] as [{olapDimHierarchy}].CurrentMember.Name').formatParams({'olapDimHierarchy': dimension.olapDimHierarchy});
         selectMn = 'Measures.[mn],';
@@ -304,7 +387,7 @@ function makeQuery(params) {
     });
 
     // Global filters
-    $selects = $('.filter-tab select');
+    $selects = $('.filter-tab select:visible');
     $selects.each(function() {
         dimMember = $(this).find('option:selected').attr('mn');
         if(dimMember) {
@@ -370,7 +453,7 @@ function makeQuery(params) {
         }
 
     }
-    console.log(where);
+
     query = 'with \
                 member Measures.atual as \
                     Sum({[{dateDimension}].[{startyear}].[{startmonth}].[{startday}] : [{dateDimension}].[{endyear}].[{endmonth}].[{endday}]}, \
@@ -386,20 +469,18 @@ function makeQuery(params) {
                     {topclausule} \
                 {mn} \
             select {{selectMn} \
-                    Measures.[{olapMeasure}], \
-                    Measures.[Variacao Anual], \
-                    Measures.TendenciaU12M} on 0 \
-                    {select} \
+                    {select}} on 0 \
+                    {selectComplement} \
                 from [{olapCube}] \
             {where}'.formatParams({
                 'dateDimension': measure.dateDimension, 'olapMeasure': measure.olapMeasure, 'olapCube': measure.olapCube,
-                'topclausule': topclausule, 'select':select, 'mn': mn, 'selectMn': selectMn, 'where': where,
+                'topclausule': topclausule, 'selectComplement': selectComplement, 'mn': mn, 'selectMn': selectMn, 'where': where,
                 'startyear': startdate.year(),'startmonth': startdate.month()+1,'startday': startdate.date(),
                 'endyear': enddate.year(),'endmonth': enddate.month()+1,'endday': enddate.date(),
                 'startyearLastY': startLastYear.year(),'startmonthLastY': startLastYear.month()+1,'startdayLastY': startLastYear.date(),
                 'endyearLastY': endLastYear.year(),'endmonthLastY': endLastYear.month()+1,'enddayLastY': endLastYear.date(),
                 'startyearU12': startU12.year(),'startmonthU12': startU12.month()+1,
-                'endyearU12': endU12.year(),'endmonthU12': endU12.month()+1
+                'endyearU12': endU12.year(),'endmonthU12': endU12.month()+1, 'select': select
             });
 
     return {'query': query, 'measure': measure, 'dimension': dimension, 'tab': tab, 'filter': filteredWith, 'u12Months': u12Months}
@@ -407,8 +488,9 @@ function makeQuery(params) {
 
 function successTable(xmla, options, response, query) {
     rows = response.fetchAllAsArray();
-    buildTable({'query':query, 'rows':rows});
-
+    tableId = buildTable({'query':query, 'rows':rows});
+    console.log('init table events');
+    initTableEvents(tableId);
     renderSparkline('spark-dimension');
     tweakProgressBar();
 
@@ -417,7 +499,11 @@ function successTable(xmla, options, response, query) {
 renderSparkline = function(claz) {
     options = SPARKLINE_CONFIG[claz];
     $('.'+claz).each(function(i, obj) {
-        values = $(this).data('values').split(',');
+        if($(this).data('values')) {
+            values = $(this).data('values').split(',');
+        } else {
+            values = [];
+        }
         options.spotColor = $(this).data('measureColor') || undefined;
         options.minSpotColor = $(this).data('minColor');
         options.maxSpotColor = $(this).data('maxColor');
@@ -432,16 +518,18 @@ function successMeasure(xmla, options, response, query) {
     renderSparkline('spark-measure');
 
     if(query.selectMeasure) {
-        selectMeasureKey(query.tab.key, query.initial_measure_key);
+        selectMeasureKey(query.tab.key, query.initial_measure_key, query);
     }
     if(query.buildTables) {
         createTablesForMeasure({
-            'tab_key': query.initial_tab_key,
+            'tab_key': query.tab.key,
             'measure_key': query.initial_measure_key,
             'dimension_key': query.initial_dimension_key,
             'dimension_key_not_updatable': query.dimension_key_not_updatable,
+            'reloading': query.reloading,
             'filterArr': query.filter});
     }
+
 };
 
 
@@ -481,18 +569,18 @@ function buildTabs(tabs, global_filters) {
         $targetPane.append($tabpane);
         $target.append($li);
         if (tab_key == 0) {
-
-            for (var measure_key in tab.measures) {
-                var measure = tab.measures[measure_key];
-                query = makeQuery({'measure': measure, 'tab': tab});
-                query.tab.key = tab_key
-                query.measure.key = measure_key
-                query.buildTables = true;
-                query.initial_tab_key = 0
-                query.initial_measure_key = 0
-                query.selectMeasure = true
-                new QueryBuilder(query, successMeasure).run();
-            }
+            updateMeasure({'tab_key': tab_key, 'initial_measure_key': 0});
+            // for (var measure_key in tab.measures) {
+            //     var measure = tab.measures[measure_key];
+            //     query = makeQuery({'measure': measure, 'tab': tab});
+            //     query.tab.key = tab_key
+            //     query.measure.key = measure_key
+            //     query.buildTables = true;
+            //     query.initial_tab_key = 0
+            //     query.initial_measure_key = 0
+            //     query.selectMeasure = true
+            //     new QueryBuilder(query, successMeasure).run();
+            // }
         }
 
     }
@@ -530,6 +618,21 @@ function buildGlobalFilters(params) {
         $option = $('<option mn="'+ row[1] +'">'+ row[0] +'</option>')
         $select.append($option);
     }
+
+    initialValue = query.global_filter.initialValue;
+    if(initialValue) {
+        var $option = undefined;
+        if(initialValue.olapDimMember) {
+            $option = $select.find('option[mn="'+initialValue.olapDimMember+'"]');
+        } else if(initialValue.first) {
+            $option = $($select.find('option')[1]);
+        }
+
+        if($option)
+            $select.val($option.val());
+
+    }
+
 }
 
 function successGlobalFilters(xmla, options, response, query) {
@@ -542,13 +645,19 @@ function updateGlobalFilters(measure, rebuild) {
         var global_filter = global_filters[global_filter_key];
 
         globalOptions = measure.globalFiltersOptions;
-        if(globalOptions) {
+        try {
             options = globalOptions[global_filter.name]
-        } else {
+        } catch(err) {
+            options = {};
+            disabled = options.disabled;
+        }
+
+        if (!options) {
             options = {};
         }
 
         disabled = options.disabled;
+
         if(options.useOlapDimHierarchy) {
             measure.olapDimHierarchy = options.useOlapDimHierarchy
         } else {
@@ -556,15 +665,15 @@ function updateGlobalFilters(measure, rebuild) {
         }
         $select = $('#'+global_filter.name);
         $select.attr('hierarchy', measure.olapDimHierarchy);
-
+        console.log(disabled);
         if(disabled) {
-            $select.val($select.find('option:first').val());
+            // $select.val($select.find('option:first').val());
             $select.parent().hide();
         } else if(rebuild) {
             query = makeGlobalFilterQuery(global_filter, measure);
             new QueryBuilder(query, successGlobalFilters).run();
         } else {
-            $select.parent().hide();
+            $select.parent().show();
         }
     }
 }
@@ -583,7 +692,8 @@ function makeGlobalFilterQuery(global_filter, measure) {
     return {'query': query, 'measure': measure, 'global_filter': global_filter}
 }
 
-function selectMeasureKey(tab_key, measure_key) {
+function selectMeasureKey(tab_key, measure_key, query) {
+    measure = tabs[tab_key].measures[measure_key];
     same = parseInt($('.measure-selected').attr('measure')) == measure_key &&
             parseInt($('.measure-selected').attr('tab')) == tab_key;
 
@@ -592,6 +702,7 @@ function selectMeasureKey(tab_key, measure_key) {
         $('.measure-selected').removeClass('measure-selected');
         $($('.measure-loader[measure='+measure_key+'][tab='+tab_key+']')[0]).addClass('measure-selected');
     }
+
 }
 
 function processTrendline(trendline) {
@@ -608,7 +719,7 @@ function buildMeasure(query, rows) {
         // measure="'+ query.measure.key +'" tab="'+ query.tab.key +'">LOAD</a>');
 
     variacao_measure = row[VARIACAO_MEASURE];
-    variation = preprocessNumber(variacao_measure);
+    variation = parseInt(preprocessNumber(variacao_measure));
     sign = getVariationSign(query.measure, variation);
 
     $display = $('<div class="display"/>');
@@ -655,7 +766,10 @@ function buildMeasure(query, rows) {
     $('.measure-loader').click(function(e) {
         var $this = $(this);
         measure_key = $this.attr('measure');
+
+
         tab_key = $this.attr('tab');
+
         updateMeasure({
             'tab_key': tab_key,
             'initial_measure_key': measure_key,
@@ -716,7 +830,8 @@ function getDimensionFilters(measure, exclude) {
 function buildTable(params) {
     query = params.query;
     var rows = params.rows;
-    $col = $('#' + (query.tab.caption+query.measure.caption+query.dimension.caption).clean());
+    tableId = '#' + (query.tab.caption+query.measure.caption+query.dimension.caption).clean();
+    $col = $(tableId);
     $col.empty();
     $panel = $('<div class="panel panel-default panel-no-margin"/>');
     $panelHeading = $('<div class="panel-heading"/>');
@@ -729,7 +844,7 @@ function buildTable(params) {
     height = query.dimension.rows*(115) - 43 - 15;// - 30;
     $panelBody = $('<div class="panel-body pre-scrollable scrollingbar" style="max-height: '+ height +'px;">');
     $panel.append($panelHeading);
-    var idx = getColumns(rows[0], query.level);
+    var idx = getColumns(rows[0], query);
 
     if(idx.EXTRA_CAPTIONS.length > 0) {
         $bread = $('<ul class="breadcrumb"/>');
@@ -803,49 +918,59 @@ function buildTable(params) {
             color = '#78aad2';
         }
 
+        caption_columns = 5
+        measure_columns = 4
+        variation_columns = 1
+        sparkline_columns = 2
+
         if(hasDrillDown && level < query.dimension.drillDownBy[0].levels) {
-            $row.append('<div class="col-xs-5 no-popover col-no-padding ">\
+            $row.append('<div class="col-xs-'+caption_columns+' no-popover col-no-padding ">\
                 <div class="col-xs-11 caption no-popover">'+captionText+'</div> \
                 <div class="col-xs-1 drilldown-link no-popover"><a href="javascript:void(0)"><i class="fa fa-level-down" \
                 style="color: '+ color +'" aria-hidden="true"></i></a></div> \
                 </div>');
         } else {
-            $row.append('<div class="col-xs-5 caption no-popover">' + captionText + '</div>');
+            $row.append('<div class="col-xs-'+caption_columns+' caption no-popover">' + captionText + '</div>');
         }
 
-        // Builds the component for the measure - a bar
-        $colBar = $('<div class="col-xs-4 col-no-padding "/>');
-        measure = numeral(preprocessNumber(row[idx.MEASURE])).format(query.measure.numberFormat);
+        if(query.dimension.visualizationOptions.showDataBar) {
+            // Builds the component for the measure - a bar
+            $colBar = $('<div class="col-xs-'+measure_columns+' col-no-padding "/>');
+            measure = numeral(preprocessNumber(row[idx.MEASURE])).format(query.measure.numberFormat);
 
+            $colBar.append($('<div class="progress"/>').append(
+            '<div class="progress-bar bar-default" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"\
+                style="width: '+ (row[idx.MEASURE]/max_measure)*100 +'%; background-color: '+ color +'"><span>'+measure+'</span></div>'));
+            $row.append($colBar);
+        }
 
-        $colBar.append($('<div class="progress"/>').append(
-        '<div class="progress-bar bar-default" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"\
-            style="width: '+ (row[idx.MEASURE]/max_measure)*100 +'%; background-color: '+ color +'"><span>'+measure+'</span></div>'));
-        $row.append($colBar);
+        if(query.dimension.visualizationOptions.showYearlyVariation) {
+            // Builds the component for variation - + sign for positive - sign for negative.
+            variation = parseInt(preprocessNumber(row[idx.VARIACAO]))
+            sign = getVariationSign(query.measure, variation);
+            // variation = query.measure.numberFormat;
+            $row.append('<div class="col-xs-'+variation_columns+' col-nowrap col-no-padding ">' + '<i class="fa fa-lg fa-caret-'+ sign +'" aria-hidden="true"></i> ' + variation + '%</div>');
+        }
 
-        // Builds the component for variation - + sign for positive - sign for negative.
-        variation = parseInt(preprocessNumber(row[idx.VARIACAO]))
-        sign = getVariationSign(query.measure, variation);
-        // variation = query.measure.numberFormat;
-        $row.append('<div class="col-xs-1 col-nowrap col-no-padding ">' + '<i class="fa fa-lg fa-caret-'+ sign +'" aria-hidden="true"></i> ' + variation + '%</div>');
+        if(query.dimension.visualizationOptions.showTrendLine) {
+            // Builds the component for variation - a sparkline
+            $trendline = $('<span class="spark-dimension"></span>');
+            $trendline.data('values', row[idx.TENDENCIA]);
+            $trendline.data('u12Months', query.u12Months);
 
-        // Builds the component for variation - a sparkline
-        $trendline = $('<span class="spark-dimension"></span>');
-        $trendline.data('values', row[idx.TENDENCIA]);
-        $trendline.data('u12Months', query.u12Months);
-
-        $trendline.data('format', query.measure.numberFormat);
-        var maxColor = query.measure.orientation == 'up' ? '#7fe174' : '#fd7159';
-        var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
-        $trendline.data('minColor', minColor);
-        $trendline.data('maxColor', maxColor);
-        $spark = $('<div class="col-xs-2"/>').append($trendline);
+            $trendline.data('format', query.measure.numberFormat);
+            var maxColor = query.measure.orientation == 'up' ? '#7fe174' : '#fd7159';
+            var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
+            $trendline.data('minColor', minColor);
+            $trendline.data('maxColor', maxColor);
+            $spark = $('<div class="col-xs-'+sparkline_columns+'"/>').append($trendline);
+            $row.append($spark);
+        }
 
         if (hasDrillDown) {
             initPopover($row, row, query.dimension.drillDownBy, idx, $col);
         }
 
-        $row.append($spark);
         $container.append($row)
     }
     $panelBody.append($container)
@@ -853,53 +978,55 @@ function buildTable(params) {
     $col.append($panel);
     $col.removeClass('table-loading');
 
-    $(".table-box .selectable").unbind('click');
+    return tableId;
+}
+
+
+function initTableEvents(tableId) {
     var DELAY = 350, clicks = 0, timer = null;
 
-    $('.table-box .selectable').click(function(e) {
+    // $target.find(".table-box .selectable").unbind('click');
+    $(tableId + ' .table-box .selectable').click(function(e) {
         var $this = $(this);
         wasPopover = $(e.target).hasClass('popover-drill');
-        if(!$('.table-loading').length) {
-            tab = tabs[$this.attr('tab')];
-            measure = tab.measures[$this.attr('measure')];
-            dimension = measure.dimensions[$this.attr('dimension')]
-            if (timer == null) {
-                timer = setTimeout(function() {
-                    clicks = 0;
-                    timer = null;
-                    // single click code
-                    $this.toggleClass("dimension-selected");
-                    filterArr = getDimensionFilters(measure).filterArr;
-                    updateMeasure({
-                        'tab_key': $this.attr('tab'),
-                        'filter': filterArr.slice(0),
-                        'initial_measure_key': $this.attr('measure'),
-                        'initial_dimension_key': $this.attr('dimension')
-                    });
-
-                }, DELAY);
-            }
-
-            if(clicks === 1 || wasPopover) {
-                clearTimeout(timer);
+        tab = tabs[$this.attr('tab')];
+        measure = tab.measures[$this.attr('measure')];
+        dimension = measure.dimensions[$this.attr('dimension')]
+        if (timer == null) {
+            timer = setTimeout(function() {
+                clicks = 0;
                 timer = null;
-                clicks = -1;
-                // double click code
-                if (dimension.drillDownBy) {
-                    doDrillDown($this);
-                }
-            }
-            clicks++;
-        }
-    });
+                // single click code
+                $this.toggleClass("dimension-selected");
+                filterArr = getDimensionFilters(measure).filterArr;
+                updateMeasure({
+                    'tab_key': $this.attr('tab'),
+                    'filter': filterArr.slice(0),
+                    'initial_measure_key': $this.attr('measure'),
+                    'initial_dimension_key': $this.attr('dimension')
+                });
 
-    $('.table-box .selectable .drilldown-link').click(function(e) {
+            }, DELAY);
+        }
+
+        if(clicks === 1 || wasPopover) {
+            clearTimeout(timer);
+            timer = null;
+            clicks = -1;
+            // double click code
+            if (dimension.drillDownBy) {
+                doDrillDown($this);
+            }
+        }
+        clicks++;
+        // }
+    });
+    // $(tableId + " .table-box .selectable").unbind('click');
+    $(tableId + ' .table-box .selectable .drilldown-link').click(function(e) {
         e.stopPropagation();
         doDrillDown($($(this).parent().parent()));
     });
-
-};
-
+}
 function doDrillDown(elem) {
     tab = tabs[elem.attr('tab')];
     measure = tab.measures[elem.attr('measure')];
@@ -980,6 +1107,7 @@ function updateMeasure(params) {
     initial_dimension_key = params.initial_dimension_key;
     dimension_key_not_updatable = params.dimension_key_not_updatable || null;
     shouldUpdateAll = params.shouldUpdateAll == null || params.shouldUpdateAll ? true : false;
+    reloading = params.reloading || false;
     tab = tabs[tab_key]
     measures = tab.measures
     thisMeasure = measures[initial_measure_key];
@@ -987,6 +1115,8 @@ function updateMeasure(params) {
     if(!shouldUpdateAll && !(filter.length>0 || filterArr.length>0)) {
         measures = [thisMeasure];
     }
+    measure = tabs[tab_key].measures[initial_measure_key];
+    updateGlobalFilters(measure, false);
     for (var measure_key in measures) {
         var measure = measures[measure_key];
         $target = $('#' + (tab.caption+measure.caption).clean());
@@ -994,8 +1124,10 @@ function updateMeasure(params) {
         $target.append($('<div class="spinner-measure"/>'));
         query = makeQuery({'measure': measure, 'tab': tab, 'filteredWith': filter});
         query.filter = filter;
+        query.reloading = reloading;
         query.tab.key = tab_key
         query.measure.key = measure_key
+        query.buildTables = false;
         if (measure_key == initial_measure_key || measures.length==1) {
             // On the success function the method createTablesForMeasure is called,
             // with those parameters.
@@ -1009,6 +1141,7 @@ function updateMeasure(params) {
         }
         new QueryBuilder(query, successMeasure).run();
     }
+
 }
 
 function getDrillDownName(col) {
@@ -1023,6 +1156,7 @@ function createTablesForMeasure(params) {
     tab_key = params.tab_key;
     dimension_key = params.dimension_key || null;
     dimension_key_not_updatable = params.dimension_key_not_updatable || null;
+    reloading = params.reloading || false;
     filterArr = params.filterArr || [];
 
     if (measure_key == null || tab_key == null) {
@@ -1032,7 +1166,7 @@ function createTablesForMeasure(params) {
     tab = tabs[tab_key];
     measure = tab.measures[measure_key];
     $divTargetTables = $('#tables .row');
-    if (filterArr.length == 0) {
+    if (filterArr.length == 0 && !reloading) {
         // $divTargetTables.empty();
         // Build tables
         if(dimension_key == null) {
@@ -1180,3 +1314,4 @@ $(window).resize(function(e) {
     sparkResize = setTimeout(redrawSparkline, 200);
     progressbarResize = setTimeout(tweakProgressBar, 200);
 });
+
