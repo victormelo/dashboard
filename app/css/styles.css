@@ -6632,9 +6632,16 @@ body {
 #app #tables .table-box .row {
   padding: 5px !important; }
 
+#app #tables .table-box {
+  padding-right: 10px !important; }
+
+#app .row .row-header div {
+  font-weight: bold;
+  text-transform: uppercase; }
+
 #app .col-no-padding {
   padding-right: 5px;
-  padding-left: 5px; }
+  padding-left: 0px; }
 
 #app #tables .row .panel-no-margin {
   margin-bottom: 15px; }
@@ -6658,12 +6665,11 @@ body {
   padding: 5px 0px 5px 0px; }
   #app .filter-tab select {
     padding: 6px 15px 6px 5px; }
-  #app .filter-tab div, #app .filter-tab select, #app .filter-tab div i {
+  #app .filter-tab select {
     font-size: 1.05em !important;
     background-color: #f1f1f1;
-    font-weight: bold; }
-  #app .filter-tab i {
-    margin-left: 10px; }
+    font-weight: bold;
+    width: 200px; }
 
 #app .breadcrumb > li + li:before {
   content: "> "; }
@@ -6839,11 +6845,10 @@ body {
   height: auto !important; }
 
 #app .panel-heading {
-  background-color: #ffffff !important;
   border-bottom: 1px solid #e9ebee;
   text-transform: uppercase;
   font-weight: bold;
-  color: #3e4250; }
+  color: #fff; }
 
 #app .panel-heading .breadcrumb {
   background-color: #ffffff !important; }
@@ -6900,7 +6905,8 @@ body {
   background-color: #323232;
   border-radius: 2px;
   color: #FFF;
-  width: auto; }
+  width: auto;
+  z-index: 9999; }
 
 #app .modal-dialog {
   width: 90%;
