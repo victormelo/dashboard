@@ -1,0 +1,35 @@
+{
+  "providers": [
+    {
+      "id": "pentaho",
+      "context": "/pentaho",
+      "target": "http://h-pbis-01.do.veltio.com.br/pentaho/"
+
+    },
+    {
+      "id": "fig",
+      "context": "/app",
+      "target": "http://localhost:3000"
+    },
+        {
+      "id": "css",
+      "context": "/css",
+      "target": "http://localhost:3000/css"
+    },
+    {
+      "id": "js",
+      "context": "/js",
+      "target": "http://localhost:3000/js"
+    },
+    {
+      "id": "fonts",
+      "context": "/fonts",
+      "target": "http://localhost:3000/fonts"
+    },
+    {
+      "id": "images",
+      "context": "/images",
+      "target": "http://localhost:3000/images"
+    }
+  ]
+}

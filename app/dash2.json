@@ -1,0 +1,311 @@
+{
+  "dashOptions": {"links": [{"caption": "Maiores Utilizadores",
+                         "anchorUrl":"/pentaho/api/repos/%3Asghi%3Afinanceiro%3AMovimentação%20Financeira.html/content?param1=*&param2=*&param3=*"}]},
+  "filters": [{
+      "name": "op",
+      "caption": "Operadora",
+      "olapDimHierarchy": "Operadora",
+      "olapDimLevel": "Operadora",
+      "initialValue": {
+        "first": true,
+        "olapDimMember": "Assim"
+      }
+    },
+    {"name": "emp",
+               "caption": "Empresa",
+               "olapDimHierarchy": "Empresa Cliente",
+               "olapDimLevel": "Codigo - Empresa Cliente",
+               "componentType": "autocomplete",
+      "lazyLoading": true,
+      "initialValue": {"olapDimMember": "46531. PREFEITURA DA CIDADE DO RIO DE JANEIRO",
+        "first": false}}
+  ],
+  "tabs": [{"caption": "",
+      "measures": [{
+          "caption": "Mensalidades",
+          "olapCube": "Sinistros, Receitas e Sinistralidade",
+          "olapMeasure": "Vlr Mensalidade",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "#,##0",
+          "color": "#88AABB",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Plano",
+              "olapDimLevel": "Codigo - Nome do Plano",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 20,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Vidas",
+                  "olapMeasure": "Qtd de Ativos"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario - Faixa Etaria.Faixa Etaria ANS - Atual",
+              "olapDimLevel": "Faixa Etaria ANS",
+              "caption": "Faixa Etária (ANS)",
+              "topFunction": "",
+              "topNumber": 0,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Vidas",
+                  "olapMeasure": "Qtd de Ativos"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario.Sexo",
+              "olapDimLevel": "Sexo",
+              "caption": "Sexo",
+              "topFunction": "",
+              "topNumber": 0,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Vidas",
+                  "olapMeasure": "Qtd de Ativos"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ]
+        },
+        {
+          "caption": "Custo Medico (Analis)",
+          "olapCube": "Sinistros, Receitas e Sinistralidade",
+          "olapMeasure": "Custo dos Itens Informados",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "#,##0",
+          "color": "#c59092",
+          "orientation": "down",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Prest Credenciado",
+              "olapDimLevel": "Prestador Credenciado",
+              "caption": "Prestador Credenciado",
+              "topFunction": "TopCount",
+              "topNumber": 20,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Utilizadores",
+                  "olapMeasure": "Qtd de Utilizadores"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Tipo de Rede",
+              "topFunction": "TopCount",
+              "topNumber": 4,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Utilizadores",
+                  "olapMeasure": "Qtd de Utilizadores"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "caption": "Tipo de Serviço",
+              "topFunction": "",
+              "topNumber": 0,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Utilizadores",
+                  "olapMeasure": "Qtd de Utilizadores"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Plano",
+              "olapDimLevel": "Codigo - Nome do Plano",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 20,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Utilizadores",
+                  "olapMeasure": "Qtd de Utilizadores"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario - Faixa Etaria.Faixa Etaria ANS - Atual",
+              "olapDimLevel": "Faixa Etaria ANS",
+              "caption": "Faixa Etária (ANS)",
+              "topFunction": "",
+              "topNumber": 0,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Utilizadores",
+                  "olapMeasure": "Qtd de Utilizadores"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario.Sexo",
+              "olapDimLevel": "Sexo",
+              "caption": "Sexo",
+              "topFunction": "",
+              "topNumber": 0,
+              "rows": 3,
+              "columns": 4,
+              "additionalMeasures": [
+                {
+                  "caption": "Utilizadores",
+                  "olapMeasure": "Qtd de Utilizadores"
+                }
+              ],
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ]
+        },
+        {
+          "caption": "Sinistralidade",
+          "olapCube": "Sinistros, Receitas e Sinistralidade",
+          "olapMeasure": "Indice de Sinistralidade",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "#,##0.0",
+          "color": "#ACAC8F",
+          "orientation": "down",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Plano",
+              "olapDimLevel": "Codigo - Nome do Plano",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 20,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario - Faixa Etaria.Faixa Etaria ANS - Atual",
+              "olapDimLevel": "Faixa Etaria ANS",
+              "caption": "Faixa Etária (ANS)",
+              "topFunction": "",
+              "topNumber": 0,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario.Sexo",
+              "olapDimLevel": "Sexo",
+              "caption": "Sexo",
+              "topFunction": "",
+              "topNumber": 0,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario.Vinculo Tipo",
+              "olapDimLevel": "Vinculo Tipo",
+              "caption": "Vínculo",
+              "topFunction": "",
+              "topNumber": 0,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ]
+        }
+      ]}
+  ]
+}

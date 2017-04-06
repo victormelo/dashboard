@@ -19,8 +19,10 @@ QueryBuilder.prototype.run = function(){
                     details = 'Erro ao executar consulta à  '+thisone.query.dimension.caption+' por '+ thisone.query.measure.caption;
                 } else if(thisone.query.global_filter) {
                     details = 'Erro ao executar consulta à ' + thisone.query.global_filter.caption;
-                } else {
+                } else if(thisone.query.measure.caption) {
                     details = 'Erro ao executar consulta à  ' + thisone.query.measure.caption;
+                } else {
+                    details = 'Erro ao executar a consulta';
                 }
 
                 $.toast({
@@ -33,13 +35,20 @@ QueryBuilder.prototype.run = function(){
             }
         }
     });
+
+    try {
+        catalog = this.query.measure.olapCatalog;
+    } catch(err) {
+        catalog = this.query.olapCatalog;
+    }
+
     try {
         response = xmla.execute({
             async: true,
             url: PENTAHO_URL,
             statement: this.query.query,
             properties: {DataSourceInfo: "Pentaho Mondrian",
-            Catalog: this.query.measure.olapCatalog,
+            Catalog: catalog,
             Format: "Tabular"},
             success: this.callback
         });

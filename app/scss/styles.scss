@@ -1,6 +1,7 @@
 @import "_variables.scss";
 @import "_bootstrap.scss";
 @import "_bootswatch.scss";
+@import "_bootswatch.scss";
 
 body  {
   background-color: $app-background-color;
@@ -16,8 +17,8 @@ body  {
 
 #app #tables .table-box .row{
     padding: 5px !important;
-
 }
+
 #app #tables .table-box {
     padding-right: 10px !important;
 }
@@ -28,8 +29,8 @@ body  {
 }
 
 #app .col-no-padding {
-  padding-right: 5px;
-  padding-left: 0px;
+  padding-right: 4px;
+  padding-left: 4px;
 }
 
 #app #tables .row .panel-no-margin {
@@ -50,22 +51,113 @@ body  {
   font-weight: bold;
   font-size: 1.05em;
 }
+$selectize-line-height: 18px !default;
+$selectize-padding-x: 6px !default;
+$selectize-padding-y: 6px !default;
+$selectize-arrow-size: 5px !default;
+$selectize-arrow-color: #808080 !default;
+$selectize-arrow-offset: 5px !default;
+
+$control-height: $selectize-line-height + (2 * $selectize-padding-y) + 2;
+$right-padding-with-arrow: $selectize-padding-x + $selectize-arrow-size + $selectize-arrow-offset;
 
 #app .filter-tab {
   float:right;
+  width: 200px;
 
-  & select {
-    padding: 6px 15px 6px 5px;
-  }
   & select {
     font-size: 1.05em !important;
     background-color: #f1f1f1;
     font-weight: bold;
-    width: 200px;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    webkit-box-shadow: unset !important;
+    box-shadow: unset !important;
+    color: #666 !important;
   }
 
+  & select {
+    padding: 6px 15px 6px 5px;
+
+  }
+
+  & .selectize-input {
+    white-space: nowrap;
+    border: none;
+    border-radius: 0;
+    webkit-box-shadow: unset !important;
+    box-shadow: unset !important;
+    background-color: #f1f1f1;
+    height: $control-height;
+
+    font-weight: bold;
+    font-size: 1.05em !important;
+    color: #666 !important;
+
+    & input {
+      font-size: 1.05em !important;
+      color: #666 !important;
+
+    }
+    & .item-wrap-outer {
+      overflow: hidden;
+      position: absolute;
+      top: $selectize-padding-y;
+      bottom: $selectize-padding-y;
+      right: $right-padding-with-arrow;
+      left: $selectize-padding-x;
+
+      & .item-wrap-inner {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+      }
+    }
+  }
+
+  // }
+
+  // & .selectize-input .item {
+  //   color: #666 !important;
+  //   font-weight: bold;
+
+  //   white-space: nowrap !important;
+  //   overflow: hidden !important;
+  // }
+  // & .selectize-input .input-active {
+  //   text-overflow: initial;
+  //   width: auto;
+  //   position: absolute;
+
+  //   right: 0;
+  // }
+  & .selectize-control {
+    height: 0px;
+  }
   margin-left: 15px;
   padding: 5px 0px 5px 0px;
+}
+.option-label {
+  font-size: 0.9em !important;
+  color: #666 !important;
+}
+
+.option-caption {
+  font-size: 0.7em !important;
+  color: #aaa !important;
+}
+
+.option-caption, .option-label {
+  white-space: nowrap !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.selectize-control.single .selectize-input:after {
+  right:$selectize-arrow-offset !important;
+  border-style: unset !important;
 }
 
 #app .breadcrumb > li + li:before {
@@ -79,9 +171,7 @@ body  {
 }
 
 #app .table-box .row {
-  padding: 7px 0px 7px 15px !important;
   border-bottom: 1px solid $border-color;
-
 }
 
 #app .table-box {
@@ -284,7 +374,8 @@ body  {
   border-bottom: 1px solid $border-color;
   text-transform: uppercase;
   font-weight: bold;
-  color: #fff;
+  background-color:#fff;
+  color: #3e4250;
 }
 #app .panel-heading .breadcrumb {
   background-color: #ffffff !important;
@@ -343,7 +434,7 @@ body  {
     position: fixed;
     bottom: 0px;
     right: 0px;
-    margin: 15px;
+    margin: 1px;
     padding:0px 0.5rem;
     text-align: right;
     background-color: #323232;
@@ -357,9 +448,11 @@ body  {
 // Bigger modals
 
 #app .modal-dialog {
-  width: 90%;
-  height: 90%;
+  width: 99%;
+  height: 99%;
   padding: 0;
+  margin: 5px !important;
+
 }
 
 #app .modal-content {

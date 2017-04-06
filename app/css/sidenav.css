@@ -1,0 +1,78 @@
+
+/* The side navigation menu */
+.sidenav {
+    height: 100%; /* 100% Full-height */
+    width: 250px; /* 0 width - change this with JavaScript */
+    position: fixed; /* Stay in place */
+    z-index: 2; /* Stay on top */
+    top: 46px;
+    right: -250px;
+    background-color: #fff;
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    border-left: 1px solid #dae9ee;
+}
+
+.sidenav .sidenav-content {
+    position: relative;
+    z-index: 2;
+    float: left;
+    width: 100%;
+
+    top: -45px;
+    left: 15px;
+    padding-right: 30px;
+    color: #666 !important;
+
+}
+.circle:hover {
+  cursor: pointer;
+
+}
+.circle {
+    z-index: 1;
+    height: 50px;
+    width: 50px;
+    border-radius: 100px;
+    background-color: black;
+    margin: auto;
+    position: relative;
+    right: 25px;
+    top: 15px;
+    background-color: #fff;
+    border-left: 1px solid #dae9ee;
+    float: left;
+}
+
+.circle .toggle {
+    padding: 14px 10px 10px 6px;
+    color: #dae9ee;
+    z-index: 1;
+
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
+
+.sidenav-content .content-details {
+    font-size: 0.9em !important;
+    width: 100%;
+    position: relative;
+    /*padding-bottom: 15px;*/
+    /*border-bottom: 1px solid #dae9ee;*/
+    /*margin-bottom: 20px;*/
+}
+.sidenav-content .content-details .data-caption {
+    font-size: 1.3em !important;
+    font-weight: bold;
+}
+.sidenav-content .content-details .data-box {
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+.sidenav-content .key {
+    margin-right: 8px;
+}

@@ -19,10 +19,16 @@ function getColumns(row, query) {
     minusMeasure = !query.dimension.visualizationOptions.showDataBar;
     minusVariacao = !query.dimension.visualizationOptions.showYearlyVariation;
     minusTendencia = !query.dimension.visualizationOptions.showTrendLine;
+    measureidx = 2;
+    if(query.dimension.additionalMeasures) {
+        if(row && row.length >= 5 && $.type(row[2]) === "string") {
+            measureidx = 2 + row.length - 4
+        }
+    }
 
     return {CAPTION: 0+offset,
             NAME: 1+offset,
-            MEASURE: 2+offset,
+            MEASURE: measureidx + offset,
             VARIACAO: 3+offset - minusMeasure + offsetMeasures,
             TENDENCIA: 4+offset - minusVariacao - minusMeasure + offsetMeasures,
             EXTRA_CAPTIONS: extra_captions};
@@ -48,28 +54,53 @@ if (location.search) {
     for (var i = 0; i < parts.length; i++) {
         var nv = parts[i].split('=');
         if (!nv[0]) continue;
-        GET[nv[0]] = nv[1] || true;
+        GET[nv[0]] = decodeURIComponent(nv[1]) || true;
     }
 }
 
-tabs = null;
+var tabs = null;
+var semaphoreGlobalFilter  = 0, all_queued = false;
+var global_filters = null;
+var sidemenu = null;
+if(GET.startdate) {
+    var start = moment(GET.startdate, "YYYYMMDD")
+} else {
+    var start = moment().startOf('month');
+}
 
+if(GET.enddate) {
+    var end = moment(GET.enddate, "YYYYMMDD")
+} else {
+    var end = moment();
+}
+// start.format('YMMDD')
+// moment("12-25-1995", "MM-DD-YYYY");
+// http://177.135.142.133:8010/pentaho/Home usuário `bi` senha `260788spd`
+// "target": "http://h-pbis-01.do.veltio.com.br/pentaho/"
 console.log(GET);
 d = GET.d || 'ovvt';
 jsonURL = '/pentaho/plugin/ppa/api/dashmd?paramd={d}'.formatParams({'d': d});
-console.log(jsonURL)
+// console.log(jsonURL)
 // $.get( "dash.json", function( data ) {
 $.getJSON(jsonURL, function( data ) {
     tabs = data.tabs;
-    global_filters = data.filters
+    global_filters = data.filters;
+    sidemenu = data.sideMenu;
+
+    for (var key in global_filters) {
+        var global_filter = global_filters[key];
+        if(GET[global_filter.name]) {
+            global_filter.initialValue.olapDimMember = GET[global_filter.name];
+            console.log('Using GET global filter: ' + global_filter.initialValue.olapDimMember);
+        }
+    }
     buildTabs(tabs, global_filters);
     try {
         buildAnchors(data.dashOptions.links, global_filters);
     } catch(err) {
         console.log('no anchor links defined');
     }
-    // setInterval(reload, data.dashOptions.refreshTime*1000);
-
+    setInterval(reload, data.dashOptions.refreshTime*1000);
 });
 
 function buildAnchors(links, global_filters) {
@@ -85,7 +116,7 @@ function buildAnchors(links, global_filters) {
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> \
                 </div> \
                 <div class="modal-body"> \
-                    <iframe src="" style="zoom:0.60" width="99.6%" height="768px" frameborder="0"></iframe> \
+                    <iframe src="" width="99.6%" frameborder="0"></iframe> \
                 </div> \
             </div> \
           </div> \
@@ -100,20 +131,33 @@ function buildAnchors(links, global_filters) {
         for(var i=0; i<url.length;i++) {
             if (url[i] === "*") indices.push(i);
         }
-        for (var i = indices.length - 1; i >= 0; i--) {
-            var global_filter = global_filters[i];
-            var dimMember = $('#'+global_filter.name).find('option:selected').attr('mn');
+        for (var i = indices.length - 1; i >= 2; i--) {
+            var global_filter = global_filters[i-2];
+            var dimMember = $('#'+global_filter.name).find('option:selected:not([value="nofilter_true"])').val();
             url = url.removeAt(indices[i], 1);
 
             if(dimMember)
                 url = url.insert(indices[i], escape(dimMember));
         }
+        if(indices.length >= 2) {
+            url = url.removeAt(indices[1], 1);
+            url = url.insert(indices[1], escape(start.format('YMMDD')));
+
+            url = url.removeAt(indices[0], 1);
+            url = url.insert(indices[0], escape(end.format('YMMDD')));
+        }
+
         $this = $(this)
         $('#'+$this.text().clean()).modal('show');
         $('#'+$this.text().clean()).on('shown.bs.modal', function () {
-            $('#'+$this.text().clean() + ' iframe').attr("src", url);
-        });
+            $iframe = $('#'+$this.text().clean() + ' iframe')
+            $iframe.attr("src", url);
+            $iframe.on('load', function() {
+                this.height = "";
 
+                this.height = $('.modal-content').height() - 45 + "px";
+            })
+        });
     });
 }
 
@@ -143,15 +187,16 @@ function initPopover($elem, currentRow, drillDownBy, idx, $drillDownData) {
 
     }
 }
-var start = moment().startOf('month');
-var end = moment();
 
 function reload() {
-    selected = $('.measure-selected');
-    measure_key = selected.attr('measure');
-    tab_key = selected.attr('tab');
-    tab = tabs[tab_key];
-    measure = tab.measures[measure_key];
+    var selected = $('.measure-selected');
+    var measure_key = selected.attr('measure');
+    var tab_key = selected.attr('tab');
+    try {
+        var measure = tabs[tab_key].measures[measure_key];
+    } catch(err) {
+        var measure = tabs[0].measures[0];
+    }
     filterArr = getDimensionFilters(measure).filterArr;
     updateMeasure({
         'tab_key': tab_key,
@@ -180,8 +225,6 @@ function initDatePicker() {
     $('#reportrange').daterangepicker({
 
         locale: {
-            // "format": "DD/MM/YYYY",
-            // "separator": " - ",
             "applyLabel": "Aplicar",
             "cancelLabel": "Cancelar",
             "fromLabel": "De",
@@ -382,8 +425,6 @@ function makeQuery(params) {
                     });
                 }
 
-                // dimHierarchy = '{drillDownCurrent}'.formatParams(
-                                    // {'drillDownCurrent': drillDownCurrent});
                 selectComplement = ', non empty {dim} on 1'.formatParams(
                                     {'dim': dim});
 
@@ -428,9 +469,9 @@ function makeQuery(params) {
     });
 
     // Global filters
-    $selects = $('.filter-tab select:visible');
+    $selects = $('.filter-tab:visible select');
     $selects.each(function() {
-        dimMember = $(this).find('option:selected').attr('mn');
+        dimMember = $(this).find('option:selected:not([value="nofilter_true"])').val();
         if(dimMember) {
             dimHierarchy = $(this).attr('hierarchy');
             dimLevel = $(this).attr('level');
@@ -534,7 +575,6 @@ function makeQuery(params) {
                 'startyearU12': startU12.year(),'startmonthU12': startU12.month()+1,
                 'endyearU12': endU12.year(),'endmonthU12': endU12.month()+1, 'select': select
             });
-
     return {'query': query, 'measure': measure, 'dimension': dimension, 'tab': tab, 'filter': filteredWith, 'u12Months': u12Months}
 }
 
@@ -590,14 +630,19 @@ function successMeasure(xmla, options, response, query) {
 
 function buildTabs(tabs, global_filters) {
     $tables = $('<div id="tables"><div class="row"></</div>');
+
     for (var tab_key in tabs) {
         var tab = tabs[tab_key];
         $target = $('#app .nav-tabs');
-        active = tab_key == 0 ? 'active' : '';
-        $li = '<li class="' + active + '"> \
-                <a href="#'+ tab.caption.clean() +'" tab="'+ tab_key +'" data-toggle="tab" aria-expanded="true">'+tab.caption+'</a></li>'
-
         $targetPane = $('#app .tab-content');
+        active = tab_key == 0 ? 'active' : '';
+        if(tabs.length > 1) {
+            $li = '<li class="' + active + '"> \
+                    <a href="#'+ tab.caption.clean() +'" tab="'+ tab_key +'" data-toggle="tab" aria-expanded="true">'+tab.caption+'</a></li>'
+            $target.append($li);
+
+        }
+
         active = tab_key == 0 ? 'active in' : ''
         $tabpane = $('<div class="tab-pane fade ' + active + '" id="'+ tab.caption.clean() +'"/>');
 
@@ -622,51 +667,106 @@ function buildTabs(tabs, global_filters) {
         $tabpane.append($row);
 
         $targetPane.append($tabpane);
-        $target.append($li);
-        if (tab_key == 0) {
-            updateMeasure({'tab_key': tab_key, 'initial_measure_key': 0});
-        }
-
     }
     for (var global_filter_key in global_filters) {
         var global_filter = global_filters[global_filter_key];
         $target.append('<li class="filter-tab"> \
             <select hierarchy="'+global_filter.olapDimHierarchy+'" \
             level="'+global_filter.olapDimLevel+'" id="'+ global_filter.name +'"> \
-              <option>('+ global_filter.caption +')</option> \
+              <option value="nofilter_true" >('+ global_filter.caption +')</option> \
             </select></li>');
     }
-    measure = tabs[0].measures[0];
-    updateGlobalFilters(measure, true);
-    $('.filter-tab select').on('change', reload);
 
     $target.append('<li class="datepicker-tab"><div id="reportrange"><i class="fa fa-calendar"></i> <span></span></div></li>');
     initDatePicker();
+    if(global_filters) {
+        measure = tabs[0].measures[0];
+        updateGlobalFilters(measure, true);
+    } else {
+        updateMeasure({'tab_key': 0, 'initial_measure_key': 0});
+    }
     initTabFunctions();
     $targetPane.append($tables);
+
+    if(sidemenu) {
+        var $sidemenuTarget = $('#app .tab-content')
+        $sidemenuTarget.append('<div id="mySidenav" class="sidenav"> \
+            <div class="circle"> \
+                <div class="toggle"><i class="fa fa-bars fa-lg fa-rotate-90" aria-hidden="true"></i></div> \
+            </div> \
+            <div class="clearfix"></div> \
+            <div class="sidenav-content"> \
+            </div> \
+        </div>');
+        initSidemenu();
+    }
 };
 
+function successSidemenu(xmla, options, response, query) {
+    rows = response.fetchAllAsArray();
+    buildSidemenu({'query':query, 'rows':rows})
+};
+
+function prepareSidemenu() {
+    var $target = $('#mySidenav .sidenav-content');
+    for(var key in sidemenu.sessions) {
+        var session = sidemenu.sessions[key];
+        var addClass = '';
+        var $content = $('<div id="session-'+ key +'" class="content-details">');
+        $target.append($content);
+        if(session.title) {
+            $content.append('<div class="data-caption">'+ session.title +'</div>');
+        } else {
+            addClass = 'data-caption';
+        }
+
+        query = {
+            query: session.query.statement,
+            id: 'session-'+ key,
+            olapCatalog: session.query.olapCatalog,
+            addClass: addClass
+        };
+        new QueryBuilder(query, successSidemenu).run();
+    }
+}
+
+function buildSidemenu(params) {
+    var query = params.query || null;
+    var rows = params.rows || null;
+    var $target = $('#'+query.id);
+    var $dataBox = $('<div class="data-box '+query.addClass+'">')
+    $target.append($dataBox);
+
+    for(var key in rows) {
+        var row = rows[key];
+        $dataBox.append('<div class="data-item"> \
+            <span class="key">'+row[0]+'</span> \
+            <span class="item">'+row[1]+'</span> \
+            </div>')
+    }
+}
+
 function buildGlobalFilters(params) {
-    query = params.query || null;
-    rows = params.rows || null;
-    $select = $('#'+query.global_filter.name);
+    var query = params.query || null;
+    var rows = params.rows || null;
+    var $select = $('#'+query.global_filter.name);
 
     $select.parent().show();
     $select.empty();
-    $select.append('<option>('+ query.global_filter.caption +')</option>');
+    $select.append('<option value="nofilter_true">('+ query.global_filter.caption +')</option>');
 
     for (var row_key in rows) {
         var row = rows[row_key];
-        $option = $('<option mn="'+ row[1] +'">'+ row[0] +'</option>')
+        $option = $('<option value="'+ row[1] +'">'+ row[0] +'</option>')
         $select.append($option);
     }
 
-    initialValue = query.global_filter.initialValue;
+    var initialValue = query.global_filter.initialValue;
     if(initialValue) {
         var $option = undefined;
         if(initialValue.olapDimMember) {
-            $option = $select.find('option[mn="'+initialValue.olapDimMember+'"]');
-        } else if(initialValue.first) {
+            $option = $select.find('option[value="'+initialValue.olapDimMember+'"]');
+        } else if(initialValue.first && !query.global_filter.lazyLoading) {
             $option = $($select.find('option')[1]);
         }
 
@@ -674,12 +774,69 @@ function buildGlobalFilters(params) {
             $select.val($option.val());
 
     }
-
+    if(query.global_filter.componentType == "autocomplete") {
+        initSelectize($select, params);
+    }
+    $('.filter-tab select').unbind('change');
+    $('.filter-tab select').on('change', function(e) {
+        if(this.value)
+            reload();
+    });
 }
 
+function initSelectize($select, params) {
+    var exceededWindowHeight = false;
+    options = {
+        plugins: ['item_nowrap'],
+        searchField: ['text', 'value'],
+        render: {
+            option: function(item, escape) {
+                var label = item.text || item.value;
+                var caption = item.text ? item.value : null;
+
+                if(caption == 'nofilter_true') {
+                    caption = '';
+                }
+                return '<div>' +
+                    '<div class="option-label">' + escape(label) + '</div>' +
+                    (caption ? '<div class="option-caption">' + escape(caption) + '</div>' : '') +
+                '</div>';
+            }
+        },
+        onInitialize: function () {
+            var s = this;
+            this.revertSettings.$children.each(function () {
+                $.extend(s.options[this.value], $(this).data());
+            });
+        }
+    };
+
+    if(params.query.global_filter.lazyLoading) {
+
+        options.load = function(q, callback) {
+            if (!q.length || q.length < 3) return callback();
+            lazyQuery = makeGlobalFilterQuery(params.query.global_filter, params.query.measure, q);
+            lazyQuery.callback = callback
+            new QueryBuilder(lazyQuery, successGlobalFilters).run();
+        }
+    }
+    $select.selectize(options);
+}
 function successGlobalFilters(xmla, options, response, query) {
     rows = response.fetchAllAsArray();
-    buildGlobalFilters({'query':query, 'rows':rows});
+    if(query.callback) {
+        formattedRows = rows.map(function(x) {
+            return {'text': x[0], 'value':x[1]}
+        });
+        query.callback(formattedRows)
+    } else {
+        buildGlobalFilters({'query':query, 'rows':rows});
+        semaphoreGlobalFilter--;
+        if (all_queued && semaphoreGlobalFilter === 0) {
+            updateMeasure({'tab_key': 0, 'initial_measure_key': 0});
+            prepareSidemenu();
+        }
+    }
 };
 
 function updateGlobalFilters(measure, rebuild) {
@@ -708,28 +865,56 @@ function updateGlobalFilters(measure, rebuild) {
         $select = $('#'+global_filter.name);
         $select.attr('hierarchy', measure.olapDimHierarchy);
         if(disabled) {
-            // $select.val($select.find('option:first').val());
             $select.parent().hide();
         } else if(rebuild) {
-            query = makeGlobalFilterQuery(global_filter, measure);
+            if(global_filter.lazyLoading) {
+                q='%%%';
+                if(global_filter.initialValue.olapDimMember) {
+                    q = global_filter.initialValue.olapDimMember;
+                }
+                query = makeGlobalFilterQuery(global_filter, measure, q);
+            }
+            else {
+                query = makeGlobalFilterQuery(global_filter, measure);
+            }
+
+            semaphoreGlobalFilter++;
             new QueryBuilder(query, successGlobalFilters).run();
         } else {
             $select.parent().show();
         }
     }
+    all_queued = true;
 }
 
-function makeGlobalFilterQuery(global_filter, measure) {
-    globalOptions = measure.globalFiltersOptions;
+function makeGlobalFilterQuery(global_filter, measure, filter) {
 
+    globalOptions = measure.globalFiltersOptions;
+    if(filter) {
+        select = "Filter([{olapDimHierarchy}].[{olapDimLevel}].Members, \
+                          [{olapDimHierarchy}].CurrentMember.Name matches '(?i).*{filter}.*' or \
+                             [{olapDimHierarchy}].CurrentMember.Properties('MEMBER_CAPTION') matches '(?i).*{filter}.*') on 1".formatParams({
+                        'olapDimHierarchy': measure.olapDimHierarchy,
+                        'olapDimLevel': global_filter.olapDimLevel,
+                        'filter': filter
+                    });
+    } else {
+        select = '{[{olapDimHierarchy}].[{olapDimLevel}].Members} on 1'.formatParams({
+                    'olapDimHierarchy': measure.olapDimHierarchy,
+                    'olapDimLevel': global_filter.olapDimLevel
+                });
+
+    }
     query = 'with member Measures.mn as [{olapDimHierarchy}].CurrentMember.Name \
                 select {Measures.mn} on 0, \
-            {[{olapDimHierarchy}].[{olapDimLevel}].Members} on 1 \
+            {select} \
             from [{olapCube}]'.formatParams({
                 'olapDimHierarchy': measure.olapDimHierarchy,
                 'olapDimLevel': global_filter.olapDimLevel,
-                'olapCube': measure.olapCube
+                'olapCube': measure.olapCube,
+                'select': select
             });
+
     return {'query': query, 'measure': measure, 'global_filter': global_filter}
 }
 
@@ -756,8 +941,6 @@ function buildMeasure(query, rows) {
     row = rows[0];
     $target = $('#' + (query.tab.caption+query.measure.caption).clean());
     $target.empty();
-    // $a=$('<a class="measure-loader" href="javascript:void(0)" \
-        // measure="'+ query.measure.key +'" tab="'+ query.tab.key +'">LOAD</a>');
 
     variacao_measure = row[VARIACAO_MEASURE];
     variation = parseInt(preprocessNumber(variacao_measure));
@@ -768,7 +951,6 @@ function buildMeasure(query, rows) {
     measure_measure = preprocessNumber(row[MEASURE_MEASURE]);
     measure_measure = numeral(measure_measure).format(query.measure.numberFormat);
 
-    // variation = numeral(variation).format(query.measure.numberFormat);
     $variation = $('<small class="variation-right pull-right"><i class="fa fa-lg fa-caret-'+sign+'" aria-hidden="true"></i> '+variation+'%</small>');
 
     $target.append($variation);
@@ -802,7 +984,6 @@ function buildMeasure(query, rows) {
     $card = $('<div class="card-measure"/>');
     $target.append($card);
     $card.append($graph);
-    // $card.append($a);
     $(".measure-loader").unbind('click');
     $('.measure-loader').click(function(e) {
         var $this = $(this);
@@ -877,7 +1058,7 @@ function buildBarchart(params) {
     $chart = $('<div class="panel-body"><div id="'+tableId+'-chart"/></div>');
     $col.removeClass('table-loading');
     $col.append($chart);
-    height = query.dimension.rows*(115) - 43 - 15;
+    var height = query.dimension.rows*(115) - 43 - 15;
 
     lineIndex = query.dimension.visualizationOptions.useLineForIndex
     pattern = []
@@ -901,8 +1082,6 @@ function buildBarchart(params) {
         columns[2].push(row[row.length-1])
 
     }
-    console.log(rows);
-    console.log(categories);
     types = {}
     types[columns[lineIndex][0]] = 'line';
     c3.generate({
@@ -940,15 +1119,16 @@ function buildTable(params) {
         var color = query.measure.color.length > 1 ? query.measure.color : '#78aad2';
     }
 
-    $panelHeading = $('<div class="panel-heading" style="background-color:'+color+'"/>');
+    $panelHeading = $('<div class="panel-heading"/>');
     // $icon = $('<i class="fa fa-bar-chart-o fa-fw"></i>');
     caption = ' ' + query.measure.caption + ' por ' + query.dimension.caption;
     // $panelHeading.append($icon);
     $panelHeading.append(caption);
     // 4*145 = 580 = 623
     // 2*145 = 290 = 333
-    height = query.dimension.rows*(115) - 43 - 15;// - 30;
-    $panelBody = $('<div class="panel-body pre-scrollable scrollingbar" style="min-height: '+ height +'px;">');
+    var height = query.dimension.rows*(160) - 58;// - 30;
+    $panelBody = $('<div class="panel-body pre-scrollable scrollingbar" style="max-height: unset; height: '+ height +'px !important;">');
+    console.log(caption, height)
     $panel.append($panelHeading);
     var idx = getColumns(rows[0], query);
 
@@ -997,7 +1177,8 @@ function buildTable(params) {
     var measure_columns = 4
     var variation_columns = 2
     var sparkline_columns = 2
-    if(query.dimension.visualizationType==='table') {
+    if(query.dimension.visualizationType==='table' && rows.length>0) {
+        var $row = $('<div class="row row-header"/>')
         total_columns = query.dimension.visualizationOptions.showDataBar * measure_columns +
         query.dimension.visualizationOptions.showYearlyVariation * variation_columns +
         query.dimension.visualizationOptions.showTrendLine * sparkline_columns
@@ -1010,57 +1191,51 @@ function buildTable(params) {
         measure_columns += Math.ceil(columnIncrement) * query.dimension.visualizationOptions.showDataBar
         variation_columns += Math.trunc(columnIncrement) * query.dimension.visualizationOptions.showYearlyVariation
         sparkline_columns += Math.trunc(columnIncrement) * query.dimension.visualizationOptions.showTrendLine
-        if (query.dimension.additionalMeasures && rows.length>0) {
-            var additionalMeasure_columns = Math.trunc(measure_columns / 2);
-            measure_columns /= 2;
-            if(query.dimension.visualizationOptions.showDataBar) {
-                $row = $('<div class="row row-header"/>')
+        if (query.dimension.additionalMeasures) {
+            var original_mc = measure_columns;
+            measure_columns /= (query.dimension.additionalMeasures.length+1);
+            measure_columns = Math.trunc(measure_columns);
+            caption_columns += (original_mc - (measure_columns*(query.dimension.additionalMeasures.length+1)));
+
+            if(query.dimension.visualizationOptions.showDataBar ) {
                 for (var i = 0; i <= qtyMeasures; i++) {
                     if (i == 0) {
                         $colBar = $('<div class="col-xs-'+measure_columns+' col-xs-offset-'+caption_columns+' col-no-padding "/>');
                         $colBar.append(query.measure.caption)
                     } else {
-                        $colBar = $('<div class="col-xs-'+additionalMeasure_columns+' col-no-padding "/>');
+                        $colBar = $('<div class="col-xs-'+measure_columns+' col-no-padding "/>');
                         $colBar.append(query.dimension.additionalMeasures[i-1].caption);
                     }
 
                     $row.append($colBar);
 
                 }
-                $container.append($row);
             }
         } else if(rows.length>0) {
-            $row = $('<div class="row row-header"/>')
             if(query.dimension.visualizationOptions.showDataBar) {
                 $colBar = $('<div class="col-xs-'+measure_columns+' col-xs-offset-'+caption_columns+' col-no-padding "/>');
                 $colBar.append(query.measure.caption)
                 $row.append($colBar);
 
             }
+        }
+        if(query.dimension.visualizationOptions.showYearlyVariation) {
+            $colBar = $('<div class="col-xs-'+variation_columns+' col-xs-offset-'+caption_columns*!query.dimension.visualizationOptions.showDataBar+' col-no-padding "/>');
+            $colBar.append('VARIAÇÃO')
+            $row.append($colBar);
 
-            if(query.dimension.visualizationOptions.showYearlyVariation) {
-                $colBar = $('<div class="col-xs-'+variation_columns+' col-xs-offset-'+caption_columns*!query.dimension.visualizationOptions.showDataBar+' col-no-padding "/>');
-                $colBar.append('VARIAÇÃO')
-                $row.append($colBar);
-
-            }
-
-            if(query.dimension.visualizationOptions.showTrendLine) {
-                $colBar = $('<div class="col-xs-'+sparkline_columns+' col-xs-offset-'
-                    +caption_columns*
-                    !query.dimension.visualizationOptions.showDataBar*
-                    !query.dimension.visualizationOptions.showYearlyVariation+' col-no-padding "/>');
-                $colBar.append('TENDÊNCIA')
-                $row.append($colBar);
-
-            }
-
-            $container.append($row);
         }
 
+        if(query.dimension.visualizationOptions.showTrendLine) {
+            $colBar = $('<div class="col-xs-'+sparkline_columns+' col-xs-offset-'
+                +caption_columns*
+                !query.dimension.visualizationOptions.showDataBar*
+                !query.dimension.visualizationOptions.showYearlyVariation+' col-no-padding "/>');
+            $colBar.append('TENDÊNCIA')
+            $row.append($colBar);
 
-    } else {
-
+        }
+        $container.append($row);
     }
 
     for (var row_key in rows) {
@@ -1111,11 +1286,12 @@ function buildTable(params) {
             for (var i = 0; i <= qtyMeasures; i++) {
                 $colBar = $('<div class="col-xs-'+measure_columns+' col-no-padding "/>');
                 measure = numeral(preprocessNumber(row[idx.MEASURE+i])).format(query.measure.numberFormat);
+                $bar = $('<div class="progress-bar bar-default" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"\
+                    style="width: '+ (row[idx.MEASURE+i]/max_measures[i])*100 +'%; background-color: '+ color +'"><span>'+measure+'</span></div>');
+                if(i % 2 != 0)
+                    $bar.lighten({'percent': 20})
 
-                $colBar.append($('<div class="progress"/>').append(
-                '<div class="progress-bar bar-default" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"\
-                    style="width: '+ (row[idx.MEASURE+i]/max_measures[i])*100 +'%; background-color: '+ color +'"><span>'+measure+'</span></div>'));
-
+                $colBar.append($('<div class="progress"/>').append($bar));
                 $row.append($colBar);
 
             }
@@ -1197,9 +1373,7 @@ function initTableEvents(tableId) {
             }
         }
         clicks++;
-        // }
     });
-    // $(tableId + " .table-box .selectable").unbind('click');
     $(tableId + ' .table-box .selectable .drilldown-link').click(function(e) {
         e.stopPropagation();
         doDrillDown($($(this).parent().parent()));
@@ -1214,6 +1388,8 @@ function doDrillDown(elem) {
     excluded = f.excluded
 
     $dimensionData = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
+
+
     drillDownCurrent = $dimensionData.attr('drilldowncurrent');
     level = $dimensionData.attr('level');
     level = parseInt($dimensionData.attr('level'));
@@ -1254,6 +1430,9 @@ function updateTableWithDrillDown(params) {
     var tab = tabs[tab_key];
     var measure = tab.measures[measure_key];
     var dimension = measure.dimensions[dimension_key];
+    $dimensionData = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
+    $dimensionData.find('.panel-body').empty();
+    $dimensionData.find('.panel-body').append($('<div class="spinner"/>'));
     var query = makeQuery({
         'measure': measure,
         'tab': tab,
@@ -1364,7 +1543,7 @@ function createDimensionsForMeasure(params) {
                 }
 
                 if ($col.length == 0) {
-                    $col = $('<div class="col-md-'+dimension.columns+' col-no-padding" id='+(tab.caption+measure.caption+dimension.caption).clean()+'/>');
+                    $col = $('<div class="col-md-'+dimension.columns+' col-no-padding pull-left" id='+(tab.caption+measure.caption+dimension.caption).clean()+'/>');
                     $col = $col.append('<div class="clearfix visible-xs-block visible-sm-block visible-md-block"></div>');
                     $col.addClass('table-loading');
                     $col.append($('<div class="spinner"/>'));
@@ -1443,12 +1622,12 @@ function hasOverflow(e) {
     return (e[0].scrollWidth > e[0].clientWidth);
 }
 
-$(document).on('mouseenter', ".caption, .measure-caption", function(e) {
+$(document).on('mouseenter', ".caption, .measure-caption, .option-label", function(e) {
     var $this = $(this);
     if(hasOverflow($this)) {
         $this.tooltip({
             title: $this.text(),
-            placement: "right",
+            placement: "bottom",
             trigger: 'hover'
         });
         $this.tooltip('show');
