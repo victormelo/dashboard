@@ -318,6 +318,7 @@ $right-padding-with-arrow: $selectize-padding-x + $selectize-arrow-size + $selec
   font-weight: bold;
   margin-bottom: -15px;
   margin-top: -15px;
+  white-space: nowrap;
 }
 
 #app .card-measure {

@@ -1,5 +1,4 @@
 PENTAHO_URL = "/pentaho/Xmla";
-
 MEASURE_MEASURE = 0
 VARIACAO_MEASURE = 1
 TENDENCIA_MEASURE = 2
@@ -7,15 +6,22 @@ TENDENCIA_MEASURE = 2
 function getColumns(row, query) {
     var offset = query.level || 0;
     var offsetMeasures = 0;
-
+    var add = 0;
     if( query.dimension.additionalMeasures) {
         offsetMeasures = query.dimension.additionalMeasures.length;
     }
+
+    if(row && (row.length - offsetMeasures - offset) >= 6) {
+        add = 1
+    }
+
     // Tamanho de rows de consulta normal
     extra_captions = []
     for (var i = 0; i < offset; i++) {
         extra_captions.push(i);
     }
+
+
     minusMeasure = !query.dimension.visualizationOptions.showDataBar;
     minusVariacao = !query.dimension.visualizationOptions.showYearlyVariation;
     minusTendencia = !query.dimension.visualizationOptions.showTrendLine;
@@ -26,18 +32,18 @@ function getColumns(row, query) {
         }
     }
 
-    return {CAPTION: 0+offset,
-            NAME: 1+offset,
-            MEASURE: measureidx + offset,
-            VARIACAO: 3+offset - minusMeasure + offsetMeasures,
-            TENDENCIA: 4+offset - minusVariacao - minusMeasure + offsetMeasures,
+    return {CAPTION: 0+offset+add,
+            NAME: 1+offset+add,
+            MEASURE: measureidx + offset + add,
+            VARIACAO: 3+offset - minusMeasure + offsetMeasures + add,
+            TENDENCIA: 4+offset - minusVariacao - minusMeasure + offsetMeasures + add,
             EXTRA_CAPTIONS: extra_captions};
 }
 
 function preprocessNumber(number) {
     if (number != null) {
         try {
-            preprocessed = parseFloat(number.toFixed(2));
+            preprocessed = parseFloat(number);
             return preprocessed;
         } catch(err) {
             return 0;
@@ -78,15 +84,26 @@ if(GET.enddate) {
 // http://177.135.142.133:8010/pentaho/Home usuário `bi` senha `260788spd`
 // "target": "http://h-pbis-01.do.veltio.com.br/pentaho/"
 console.log(GET);
-d = GET.d || 'ovvt';
-jsonURL = '/pentaho/plugin/ppa/api/dashmd?paramd={d}'.formatParams({'d': d});
-// console.log(jsonURL)
-// $.get( "dash.json", function( data ) {
-$.getJSON(jsonURL, function( data ) {
+if(GET.path) {
+    jsonURL = '/pentaho/api/repo/files/{path}'.formatParams({'path': GET.path})
+} else {
+    d = GET.d || 'ovvt';
+    jsonURL = '/pentaho/plugin/ppa/api/dashmd?paramd={d}'.formatParams({'d': d});
+}
+
+console.log(jsonURL)
+$.get( "dash.json", function( data ) {
+// $.getJSON(jsonURL, function( data ) {
+    console.log('dash');
     tabs = data.tabs;
     global_filters = data.filters;
     sidemenu = data.sideMenu;
 
+    if(data.dashOptions && data.dashOptions.startDateRangeMonthSubtract) {
+        start = moment().subtract(data.dashOptions.startDateRangeMonthSubtract, 'month').startOf('month');
+        end = moment().subtract(data.dashOptions.startDateRangeMonthSubtract, 'month').endOf('month');
+
+    }
     for (var key in global_filters) {
         var global_filter = global_filters[key];
         if(GET[global_filter.name]) {
@@ -100,7 +117,10 @@ $.getJSON(jsonURL, function( data ) {
     } catch(err) {
         console.log('no anchor links defined');
     }
-    setInterval(reload, data.dashOptions.refreshTime*1000);
+    if(data.dashOptions && data.dashOptions.refreshTime) {
+        setInterval(reload, data.dashOptions.refreshTime*1000);
+    }
+
 });
 
 function buildAnchors(links, global_filters) {
@@ -310,6 +330,7 @@ function breadcrumbNavigate () {
 }
 
 function makeQuery(params) {
+    crossjoin = 'NonEmptyCrossJoin'
     dimension = params.dimension || null;
     tab = params.tab || null;
     measure = params.measure || null;
@@ -514,7 +535,7 @@ function makeQuery(params) {
         } else {
             filt1 = filts[0];
             filt2 = filts[1];
-            filt = 'CrossJoin({filt1}, {filt2})'.formatParams({'filt1':filt1, 'filt2':filt2});
+            filt = '{crossjoin}({filt1}, {filt2})'.formatParams({'filt1':filt1, 'filt2':filt2, 'crossjoin': crossjoin});
             if (dimlen > 2) {
                 for (var i = 2; i < dimlen; i++) {
                     morefilt = filts[i];
@@ -523,10 +544,11 @@ function makeQuery(params) {
             }
         }
         if (filts.length > 0) {
-            where = 'where CrossJoin( \
+            where = 'where {crossjoin}( \
             {{dateFilter}}, \
             {filter})'.formatParams({
-                'dateFilter':dateFilter, 'filter' : filt
+                'dateFilter':dateFilter, 'filter' : filt,
+                'crossjoin': crossjoin
             });
         }
     }
@@ -546,14 +568,38 @@ function makeQuery(params) {
             where = '';
         }
     }
+    aggregateFunction = 'Sum'
+    if(measure.aggregateFunction) {
+        aggregateFunction = measure.aggregateFunction
+    }
+    if(measure.previousValueDateInterpolation) {
+        previousStartDate = measure.previousValueDateInterpolation.replace('$day', '{startdayLastY}');
+        previousStartDate = previousStartDate.replace('$month', '{startmonthLastY}');
+        previousStartDate = previousStartDate.replace('$year', '{startyearLastY}');
+
+        previousEndDate = measure.previousValueDateInterpolation.replace('$day', '{enddayLastY}');
+        previousEndDate = previousEndDate.replace('$month', '{endmonthLastY}');
+        previousEndDate = previousEndDate.replace('$year', '{endyearLastY}');
+
+    } else {
+        previousStartDate = '[{startyearLastY}].[{startmonthLastY}].[{startdayLastY}]';
+        previousEndDate = '[{endyearLastY}].[{endmonthLastY}].[{enddayLastY}]';
+    }
+    previousStartDate = previousStartDate.formatParams({'startyearLastY': startLastYear.year(),'startmonthLastY': startLastYear.month()+1,'startdayLastY': startLastYear.date()});
+    previousEndDate = previousEndDate.formatParams({'endyearLastY': endLastYear.year(),'endmonthLastY': endLastYear.month()+1,'enddayLastY': endLastYear.date()});
+
+    additionalWith = '';
+    if(measure.additionalWith) {
+        additionalWith = measure.additionalWith;
+    }
 
     query = 'with \
+                {additionalWith} \
                 member Measures.atual as \
-                    Sum({[{dateDimension}].[{startyear}].[{startmonth}].[{startday}] : [{dateDimension}].[{endyear}].[{endmonth}].[{endday}]}, \
-                    Measures.[{olapMeasure}]) \
+                    Measures.[{olapMeasure}] \
                 member Measures.anterior as \
-                    Sum({[{dateDimension}].[{startyearLastY}].[{startmonthLastY}].[{startdayLastY}] : \
-                    [{dateDimension}].[{endyearLastY}].[{endmonthLastY}].[{enddayLastY}]}, Measures.[{olapMeasure}]) \
+                    {aggregateFunction}({[{dateDimension}].{previousStartDate} : \
+                    [{dateDimension}].{previousEndDate}}, Measures.[{olapMeasure}]) \
                 member Measures.[Variacao Anual] as \
                     (Measures.atual - Measures.anterior) / Measures.atual * 100 \
                 member Measures.TendenciaU12M as \
@@ -570,11 +616,11 @@ function makeQuery(params) {
                 'topclausule': topclausule, 'selectComplement': selectComplement, 'mn': mn, 'selectMn': selectMn, 'where': where,
                 'startyear': startdate.year(),'startmonth': startdate.month()+1,'startday': startdate.date(),
                 'endyear': enddate.year(),'endmonth': enddate.month()+1,'endday': enddate.date(),
-                'startyearLastY': startLastYear.year(),'startmonthLastY': startLastYear.month()+1,'startdayLastY': startLastYear.date(),
-                'endyearLastY': endLastYear.year(),'endmonthLastY': endLastYear.month()+1,'enddayLastY': endLastYear.date(),
                 'startyearU12': startU12.year(),'startmonthU12': startU12.month()+1,
-                'endyearU12': endU12.year(),'endmonthU12': endU12.month()+1, 'select': select
+                'endyearU12': endU12.year(),'endmonthU12': endU12.month()+1, 'select': select, 'aggregateFunction': aggregateFunction,
+                'previousEndDate': previousEndDate, 'previousStartDate': previousStartDate, 'additionalWith': additionalWith
             });
+
     return {'query': query, 'measure': measure, 'dimension': dimension, 'tab': tab, 'filter': filteredWith, 'u12Months': u12Months}
 }
 
@@ -626,7 +672,6 @@ function successMeasure(xmla, options, response, query) {
     }
 
 };
-
 
 function buildTabs(tabs, global_filters) {
     $tables = $('<div id="tables"><div class="row"></</div>');
@@ -945,8 +990,11 @@ function buildMeasure(query, rows) {
     variacao_measure = row[VARIACAO_MEASURE];
     variation = parseInt(preprocessNumber(variacao_measure));
     sign = getVariationSign(query.measure, variation);
-
-    $display = $('<div class="display"/>');
+    toolt = ''
+    if(query.measure.tooltip) {
+        toolt = query.measure.tooltip;
+    }
+    $display = $('<div class="display" tooltip="'+toolt+'"/>');
     $number = $('<div class="number"/>');
     measure_measure = preprocessNumber(row[MEASURE_MEASURE]);
     measure_measure = numeral(measure_measure).format(query.measure.numberFormat);
@@ -1118,8 +1166,11 @@ function buildTable(params) {
     if (query.measure.color) {
         var color = query.measure.color.length > 1 ? query.measure.color : '#78aad2';
     }
-
-    $panelHeading = $('<div class="panel-heading"/>');
+    toolt = ''
+    if(query.measure.tooltip) {
+        toolt=query.measure.tooltip;
+    }
+    $panelHeading = $('<div class="panel-heading" tooltip="'+toolt+'"/>');
     // $icon = $('<i class="fa fa-bar-chart-o fa-fw"></i>');
     caption = ' ' + query.measure.caption + ' por ' + query.dimension.caption;
     // $panelHeading.append($icon);
@@ -1128,10 +1179,8 @@ function buildTable(params) {
     // 2*145 = 290 = 333
     var height = query.dimension.rows*(160) - 58;// - 30;
     $panelBody = $('<div class="panel-body pre-scrollable scrollingbar" style="max-height: unset; height: '+ height +'px !important;">');
-    console.log(caption, height)
     $panel.append($panelHeading);
     var idx = getColumns(rows[0], query);
-
     if(idx.EXTRA_CAPTIONS.length > 0) {
         $bread = $('<ul class="breadcrumb"/>');
         $todos = $('<li> <a href="javascript:void(0)" onclick="breadcrumbNavigate.call(this)" class="drillDownLevel caption"\
@@ -1634,6 +1683,18 @@ $(document).on('mouseenter', ".caption, .measure-caption, .option-label", functi
     }
 });
 
+
+$(document).on('mouseenter', ".display, .panel-heading", function(e) {
+    var $this = $(this);
+    if($this.attr('tooltip')) {
+        $this.tooltip({
+            title: $this.attr('tooltip'),
+            placement: "top",
+            trigger: 'hover'
+        });
+        $this.tooltip('show');
+    }
+});
 
 function initTabFunctions() {
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
