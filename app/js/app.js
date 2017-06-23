@@ -82,6 +82,8 @@ if(GET.enddate) {
 // start.format('YMMDD')
 // moment("12-25-1995", "MM-DD-YYYY");
 // http://177.135.142.133:8010/pentaho/Home usuário `bi` senha `260788spd`
+// "target": "http://177.135.142.133:8010/pentaho"
+//
 // "target": "http://h-pbis-01.do.veltio.com.br/pentaho/"
 console.log(GET);
 if(GET.path) {
@@ -92,8 +94,8 @@ if(GET.path) {
 }
 
 console.log(jsonURL)
-$.get( "dash.json", function( data ) {
-// $.getJSON(jsonURL, function( data ) {
+// $.get( "dash.json", function( data ) {
+$.getJSON(jsonURL, function( data ) {
     console.log('dash');
     tabs = data.tabs;
     global_filters = data.filters;
@@ -505,6 +507,7 @@ function makeQuery(params) {
         }
     });
 
+    filts = []
     if (filteredWith.length > 0 || defaultFilters.length > 0) {
         dims = {}
         filteredWith.map( function (a) {
@@ -521,7 +524,6 @@ function makeQuery(params) {
         });
         dim_keys = Object.keys(dims);
 
-        filts = []
 
         for (var key_dim in dims) {
             filts.push(makeFilt(dims, key_dim));
