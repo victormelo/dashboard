@@ -1,0 +1,1692 @@
+{
+  "dashOptions": {
+    "refreshTime": 3000,
+    "startDateRangeMonthSubtract": 1
+  },
+  "filters": [
+    {
+      "initialValue": {
+        "first": true
+      },
+      "name": "oper",
+      "caption": "Operadora",
+      "olapDimHierarchy": "Operadora",
+      "olapDimLevel": "Operadora"
+    },
+    {
+      "initialValue": {
+        "olapDimMember": "Passou Pelo Autorizador",
+        "first": false
+      },
+      "name": "autorizador",
+      "caption": "Uso do Autorizador",
+      "olapDimHierarchy": "Autorizador Eletronico",
+      "olapDimLevel": "Autorizador Eletronico"
+    }
+  ],
+  "tabs": [
+
+    {
+      "caption": "Exames",
+      "measures": [
+        {
+          "dimensions": [
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Despesa.Tipo de Exame",
+                  "caption": "Classificação do Exame",
+                  "levels": 3
+                }
+              ],
+              "olapDimHierarchy": "Despesa.Tipo de Exame",
+              "olapDimLevel": "Tipo Exame",
+              "caption": "Tipo de Exame",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "additionalMeasures":[{
+                "tooltip": "Valor total do custo analisado (em R$ milhares)",
+                "caption": "Custo Analisado",
+                "olapMeasure": "Custo Analisado (mil)"
+              }],
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Plano.Plano - Tipo",
+                  "caption": "Plano",
+                  "levels": 1
+                }
+              ],
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Solicitante",
+              "olapDimLevel": "Prestador Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Exame"
+            }
+          ],
+          "caption": "Qtd Exames",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Qtd de Eventos",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "#,##0",
+          "color": "#ee8784",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Despesa.Tipo de Exame",
+                  "caption": "Classificação do Exame",
+                  "levels": 3
+                }
+              ],
+              "olapDimHierarchy": "Despesa.Tipo de Exame",
+              "olapDimLevel": "Tipo Exame",
+              "caption": "Tipo de Exame",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Plano.Plano - Tipo",
+                  "caption": "Plano",
+                  "levels": 1
+                }
+              ],
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Solicitante",
+              "olapDimLevel": "Prestador Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ],
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Exame"
+            }
+          ],
+          "tooltip": "Valor total do custo analisado (em R$ milhares)",
+          "caption": "Custo Analisado",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Custo Analisado (mil)",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0mil",
+          "color": "#ed8455",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Despesa.Tipo de Exame",
+                  "caption": "Classificação do Exame",
+                  "levels": 3
+                }
+              ],
+              "olapDimHierarchy": "Despesa.Tipo de Exame",
+              "olapDimLevel": "Tipo Exame",
+              "caption": "Tipo de Exame",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Plano.Plano - Tipo",
+                  "caption": "Plano",
+                  "levels": 1
+                }
+              ],
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Solicitante",
+              "olapDimLevel": "Prestador Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ],
+          "additionalWith": "member Measures.cm as Measures.[Custo dos Itens Analisados]/ Measures.[Qtd de Eventos]",
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Exame"
+            }
+          ],
+          "caption": "Custo Médio",
+          "olapCube": "Sinistros",
+          "olapMeasure": "cm",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0.00",
+          "color": "#f19f4c",
+          "orientation": "up"
+        }
+      ]
+    },
+    {
+      "caption": "Terapias",
+      "measures": [
+        {
+          "dimensions": [
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Despesa.Terapia Grupo",
+                  "caption": "Grupo Terapia",
+                  "levels": "1"
+                }
+              ],
+              "olapDimHierarchy": "Despesa.Terapia Grupo",
+              "olapDimLevel": "Terapia Grupo",
+              "caption": "Grupo",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Solicitante",
+              "olapDimLevel": "Prestador Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario.Empresa Sinistro",
+              "olapDimLevel": "Empresa",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Terapia"
+            }
+          ],
+          "caption": "Qtd Terapias",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Qtd de Eventos",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "#,##0",
+          "color": "#ee8784",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Despesa.Terapia Grupo",
+                  "caption": "Grupo Terapia",
+                  "levels": "3"
+                }
+              ],
+              "olapDimHierarchy": "Despesa.Terapia Grupo",
+              "olapDimLevel": "Terapia Grupo",
+              "caption": "Grupo",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Solicitante",
+              "olapDimLevel": "Prestador Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario.Empresa Sinistro",
+              "olapDimLevel": "Empresa",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Terapia"
+            }
+          ],
+          "tooltip": "Valor total do custo analisado (em R$ milhares)",
+          "caption": "Custo Analisado",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Custo Analisado (mil)",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0mil",
+          "color": "#ed8455",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Despesa.Terapia Grupo",
+                  "caption": "Grupo Terapia",
+                  "levels": "3"
+                }
+              ],
+              "olapDimHierarchy": "Despesa.Terapia Grupo",
+              "olapDimLevel": "Terapia Grupo",
+              "caption": "Grupo",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Solicitante",
+              "olapDimLevel": "Prestador Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Beneficiario.Empresa Sinistro",
+              "olapDimLevel": "Empresa",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "additionalWith": "member Measures.cm as Measures.[Custo dos Itens Analisados]/ Measures.[Qtd de Eventos]",
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Terapia"
+            }
+          ],
+          "caption": "Custo Médio",
+          "olapCube": "Sinistros",
+          "olapMeasure": "cm",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0.00",
+          "color": "#f19f4c",
+          "orientation": "up"
+        }
+      ]
+    },
+    {
+      "caption": "Total",
+      "measures": [
+        {
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Prest Credenciado",
+              "olapDimLevel": "Prestador Credenciado",
+              "caption": "Prestador",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Qtd Eventos",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Qtd de Eventos",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "#,##0",
+          "color": "#ee8784",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Prest Credenciado",
+              "olapDimLevel": "Prestador Credenciado",
+              "caption": "Prestador",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Beneficiario",
+                  "caption": "Beneficiário",
+                  "levels": "1"
+                }
+              ],
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ],
+          "tooltip": "Valor total do custo analisado (em R$ milhares)",
+          "caption": "Custo Analisado",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Custo Analisado (mil)",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0mil",
+          "color": "#ed8455",
+          "orientation": "up"
+        },
+        {
+          "additionalWith": "member Measures.cm as Measures.[Custo dos Itens Analisados]/ Measures.[Qtd de Eventos]",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Prest Credenciado",
+              "olapDimLevel": "Prestador Credenciado",
+              "caption": "Prestador",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Beneficiario",
+                  "caption": "Beneficiário",
+                  "levels": "1"
+                }
+              ],
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Custo Médio",
+          "olapCube": "Sinistros",
+          "olapMeasure": "cm",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0.00",
+          "color": "#f19f4c",
+          "orientation": "up"
+        }
+      ]
+    },
+    {
+      "caption": "Internações",
+      "measures": [
+        {
+          "globalFiltersOptions": {
+            "autorizador": {
+              "disabled": true
+            }
+          },
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Internação"
+            }
+          ],
+          "dimensions": [
+
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Procedimento Principal",
+                  "olapDimLevel": "Procedimento Principal",
+                  "levels": 2
+                }
+              ],
+              "olapDimHierarchy": "Procedimento Principal",
+              "olapDimLevel": "Grupo",
+              "caption": "Proced Principal",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Plano.Plano - Tipo",
+                  "caption": "Plano",
+                  "levels": 1
+                }
+              ],
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ],
+          "caption": "Internações",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Qtd de Internacoes",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0mil",
+          "color": "#ee8784",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Executante",
+              "olapDimLevel": "Profissional Executante",
+              "caption": "Executante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Procedimento Principal",
+                  "olapDimLevel": "Procedimento Principal",
+                  "levels": 2
+                }
+              ],
+              "olapDimHierarchy": "Procedimento Principal",
+              "olapDimLevel": "Grupo",
+              "caption": "Proced Principal",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Plano.Plano - Tipo",
+                  "caption": "Plano",
+                  "levels": 1
+                }
+              ],
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ],
+          "globalFiltersOptions": {
+            "autorizador": {
+              "disabled": true
+            }
+          },
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Internação"
+            }
+          ],
+          "caption": "Diárias",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Qtd de Diarias",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0mil",
+          "color": "#ee8784",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Executante",
+              "olapDimLevel": "Profissional Executante",
+              "caption": "Executante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Procedimento Principal",
+                  "olapDimLevel": "Procedimento Principal",
+                  "levels": 2
+                }
+              ],
+              "olapDimHierarchy": "Procedimento Principal",
+              "olapDimLevel": "Grupo",
+              "caption": "Proced Principal",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Plano.Plano - Tipo",
+                  "caption": "Plano",
+                  "levels": 1
+                }
+              ],
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ],
+          "globalFiltersOptions": {
+            "autorizador": {
+              "disabled": true
+            }
+          },
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Internação"
+            }
+          ],
+          "tooltip": "Valor total do custo analisado (em R$ milhares)",
+          "caption": "Custo Analisado",
+          "olapCube": "Sinistros",
+          "olapMeasure": "Custo Analisado (mil)",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0mil",
+          "color": "#ed8455",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Profissional Solicitante",
+              "olapDimLevel": "Profissional Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Profissional Executante",
+              "olapDimLevel": "Profissional Executante",
+              "caption": "Executante",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Atendimento - Natureza",
+              "olapDimLevel": "Atendimento - Natureza",
+              "caption": "Natureza",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Tipo Rede",
+              "olapDimLevel": "Tipo Rede",
+              "caption": "Rede",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Procedimento Principal",
+                  "olapDimLevel": "Procedimento Principal",
+                  "levels": 2
+                }
+              ],
+              "olapDimHierarchy": "Procedimento Principal",
+              "olapDimLevel": "Grupo",
+              "caption": "Proced Principal",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Plano.Plano - Tipo",
+                  "caption": "Plano",
+                  "levels": 1
+                }
+              ],
+              "olapDimHierarchy": "Plano.Plano - Tipo",
+              "olapDimLevel": "Rede Tipo",
+              "caption": "Plano",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Empresa Cliente",
+              "olapDimLevel": "Codigo - Empresa Cliente",
+              "caption": "Empresa",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "topIncludeOthers": false,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ],
+          "globalFiltersOptions": {
+            "autorizador": {
+              "disabled": true
+            }
+          },
+          "tooltip": "Custo médio por internação",
+          "additionalWith": "member Measures.cm as Measures.[Custo dos Itens Analisados]/ Measures.[Qtd de Internacoes]",
+          "filters": [
+            {
+              "olapDimHierarchy": "Servico - Tipo",
+              "olapDimLevel": "Servico - Tipo",
+              "olapDimMember": "Internação"
+            }
+          ],
+          "caption": "Custo Médio Inter",
+          "olapCube": "Sinistros",
+          "olapMeasure": "cm",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0.00",
+          "color": "#f19f4c",
+          "orientation": "up"
+        }
+      ]
+    }
+  ]
+}

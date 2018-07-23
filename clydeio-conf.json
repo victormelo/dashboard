@@ -3,8 +3,7 @@
     {
       "id": "pentaho",
       "context": "/pentaho",
-      "target": "http://h-pbis-01.do.veltio.com.br/pentaho/"
-
+      "target": "http://177.135.142.133:8010/pentaho/"
     },
     {
       "id": "fig",

@@ -7464,6 +7464,18 @@ body {
   font-weight: bold;
   font-size: 1.05em; }
 
+#app .custom-select {
+  font-size: 1.05em !important;
+  background-color: #f1f1f1;
+  font-weight: bold;
+  border: none;
+  border-radius: 0;
+  webkit-box-shadow: unset !important;
+  box-shadow: unset !important;
+  color: #666 !important;
+  float: right;
+  width: 20%; }
+
 #app .filter-tab {
   float: right;
   width: 200px;
@@ -7553,6 +7565,9 @@ body {
   text-overflow: ellipsis;
   display: block;
   white-space: nowrap; }
+
+#app .dropdown-dimension .altdim, #app .dropdown-toggle {
+  cursor: pointer; }
 
 #app .table-box .drilldown-link {
   padding-right: 2px;
@@ -7777,3 +7792,22 @@ body {
 
 #app .modal-header, #app .modal-body, #app .modal-header button {
   padding: 2px; }
+
+#app .panel-heading .searchable-title {
+  width: auto;
+  max-width: 98%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-transition: width 0.4s ease-in-out;
+  transition: width 0.4s ease-in-out; }
+
+#app .panel-heading .searchable-input {
+  width: 100%;
+  height: 23px;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px; }
+
+#app .panel-heading .searchable-search {
+  width: 2%;
+  cursor: pointer; }

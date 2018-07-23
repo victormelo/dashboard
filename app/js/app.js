@@ -1,7 +1,13 @@
+jQuery.expr[':'].icontains = function(a, i, m) {
+  return jQuery(a).text().toUpperCase()
+      .indexOf(m[3].toUpperCase()) >= 0;
+};
+
 PENTAHO_URL = "/pentaho/Xmla";
 MEASURE_MEASURE = 0
 VARIACAO_MEASURE = 1
 TENDENCIA_MEASURE = 2
+var currentFiltersGlobal = [];
 
 function getColumns(row, query) {
     var offset = query.level || 0;
@@ -21,20 +27,32 @@ function getColumns(row, query) {
         extra_captions.push(i);
     }
 
+    hasDrillDown = false;
+    if (query.drillDownCurrent || query.dimension.drillDownBy) {
+        hasDrillDown = true;
+    }
 
     minusMeasure = !query.dimension.visualizationOptions.showDataBar;
     minusVariacao = !query.dimension.visualizationOptions.showYearlyVariation;
     minusTendencia = !query.dimension.visualizationOptions.showTrendLine;
     measureidx = 2;
     if(query.dimension.additionalMeasures) {
-        if(row && row.length >= 5 && $.type(row[2]) === "string") {
+        if (hasDrillDown) {
+            measureidx = 2 
+        } else if(row && row.length >= 5 && $.type(row[2]) === "string") {
             measureidx = 2 + row.length - 4
         }
     }
+    if(hasDrillDown) {
+        ret_measure = measureidx + offset
+        console.log('offset is', offset)
+    } else {
+        ret_measure = measureidx + offset + add
 
+    }
     return {CAPTION: 0+offset+add,
             NAME: 1+offset+add,
-            MEASURE: measureidx + offset + add,
+            MEASURE: ret_measure,
             VARIACAO: 3+offset - minusMeasure + offsetMeasures + add,
             TENDENCIA: 4+offset - minusVariacao - minusMeasure + offsetMeasures + add,
             EXTRA_CAPTIONS: extra_captions};
@@ -85,6 +103,12 @@ if(GET.enddate) {
 // "target": "http://177.135.142.133:8010/pentaho"
 //
 // "target": "http://h-pbis-01.do.veltio.com.br/pentaho/"
+
+// "target": "http://177.38.243.154:4501/pentaho/"
+
+// 177.38.243.154:4501/pentaho/Home
+// usuário `sghi` senha `bi260788`
+
 console.log(GET);
 if(GET.path) {
     jsonURL = '/pentaho/api/repo/files/{path}'.formatParams({'path': GET.path})
@@ -94,7 +118,7 @@ if(GET.path) {
 }
 
 console.log(jsonURL)
-// $.get( "dash.json", function( data ) {
+// $.get( "dash-drilldown-alternative.json", function( data ) {
 $.getJSON(jsonURL, function( data ) {
     console.log('dash');
     tabs = data.tabs;
@@ -297,9 +321,6 @@ function breadcrumbNavigate () {
     tab = tabs[tab_key];
     measure = tab.measures[measure_key];
     dimension = measure.dimensions[dimension_key];
-    f = getDimensionFilters(measure, exclude=dimension_key);
-    filterArr = f.filterArr;
-    excluded = f.excluded;
     $dimensionData = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
     selectedLevel = parseInt($(this).attr('level'));
     current = $dimensionData.attr('drilldowncurrent');
@@ -307,9 +328,16 @@ function breadcrumbNavigate () {
     // selectedLevel+1 because we are using 0-index, and the last +1 is to care care of the index of -> ]
     targetIndex = current.nthIndexOf('].', selectedLevel+1) + 1
     targetName = current.substring(0, targetIndex);
-
     $dimensionData.attr('level', selectedLevel);
     $dimensionData.attr('drilldowncurrent', targetName);
+
+    currents = $dimensionData.find('.breadcrumb li').map(function(i, elem) {
+        if (i > 0) return $(elem).text()
+    });
+    f = getDimensionFilters(measure, exclude=dimension_key, current=currents);
+
+    filterArr = f.filterArr;
+    excluded = f.excluded;
 
     updateTableWithDrillDown({
         'tab_key': tab_key,
@@ -324,7 +352,7 @@ function breadcrumbNavigate () {
     if(excluded) {
         updateMeasure({
             'tab_key': tab_key,
-            'filter': filterArr.slice(0),
+            'filter': currentFiltersGlobal.slice(0),
             'initial_measure_key': measure_key,
             'initial_dimension_key': dimension_key
         });
@@ -339,11 +367,21 @@ function makeQuery(params) {
     filteredWith = params.filteredWith || [];
     drillDown = params.drillDown || false;
     drillDownName = params.drillDownName || null;
+    dimensionName = params.dimensionName || null;
+    drillDownCurrent = params.drillDownCurrent || null;
+
     topclausule = '';
     selectComplement = '';
     mn = '';
     selectMn = '';
 
+    if (drillDown) {
+        filteredWith = filteredWith.filter(function(elem, index) {
+            return elem.name != dimensionName
+        })
+        // console.log(drillDown)
+        // console.log(filteredWith, dimensionName)
+    }
     selectMainMeasure = 'Measures.[{olapMeasure}]'.formatParams({'olapMeasure': measure.olapMeasure});
     selectYearlyVariation = 'Measures.[Variacao Anual]';
     selectTrendline = 'Measures.TendenciaU12M';
@@ -433,9 +471,6 @@ function makeQuery(params) {
         select = selectArr.join(', ')
 
         if(drillDown) {
-            dimensionName = params.dimensionName || null;
-            drillDownCurrent = params.drillDownCurrent || null;
-
             if(dimensionName || drillDownCurrent) {
                 if(dimensionName) {
                     dim = '{drillDownCurrent}.[{olapDimLevel}].Children'.formatParams({
@@ -448,6 +483,9 @@ function makeQuery(params) {
                     });
                 }
 
+                // dim = 'NonEmptyCrossJoin([Plano.Plano - Tipo].[{olapDimLevel}], [Beneficiario.Corretor].[{olapDimLevel}].Members)'.formatParams({
+                //         'olapDimLevel': dimensionName});
+
                 selectComplement = ', non empty {dim} on 1'.formatParams(
                                     {'dim': dim});
 
@@ -457,6 +495,8 @@ function makeQuery(params) {
                                 {'dim': dim});
 
             }
+
+            // console.log(selectComplement)
         }
 
         if (dimension.topFunction) {
@@ -471,6 +511,9 @@ function makeQuery(params) {
                         {'olapDimHierarchy': dimension.olapDimHierarchy, 'dim': dim,
                         'topFunction': dimension.topFunction, 'topNumber': dimension.topNumber});
             selectComplement = ', non empty [Top+Outros] on 1';
+            if(dimension.topIncludeOthers != null && !dimension.topIncludeOthers) {
+                selectComplement = ', non empty [Top] on 1';
+            }
         }
     }
 
@@ -622,13 +665,17 @@ function makeQuery(params) {
                 'endyearU12': endU12.year(),'endmonthU12': endU12.month()+1, 'select': select, 'aggregateFunction': aggregateFunction,
                 'previousEndDate': previousEndDate, 'previousStartDate': previousStartDate, 'additionalWith': additionalWith
             });
-
+    // console.log(query)
+    // if(drillDown) {
+    //     console.log('query', query)
+    // }
     return {'query': query, 'measure': measure, 'dimension': dimension, 'tab': tab, 'filter': filteredWith, 'u12Months': u12Months}
 }
 
 function successDimension(xmla, options, response, query) {
     rows = response.fetchAllAsArray();
     if(query.dimension.visualizationType == 'table') {
+        console.log('has drilldown', query.drillDownCurrent || query.dimension.drillDownBy)
         tableId = buildTable({'query':query, 'rows':rows});
         initTableEvents(tableId);
         renderSparkline('spark-dimension');
@@ -659,7 +706,10 @@ function successMeasure(xmla, options, response, query) {
     buildMeasure(query, rows);
 
     renderSparkline('spark-measure');
-
+    
+    // currentFiltersGlobal = query.filter || currentFiltersGlobal
+    currentFiltersGlobal = Array.from(new Set(currentFiltersGlobal.concat(query.filter || [])));
+    
     if(query.selectMeasure) {
         selectMeasureKey(query.tab.key, query.initial_measure_key, query);
     }
@@ -1000,7 +1050,6 @@ function buildMeasure(query, rows) {
     $number = $('<div class="number"/>');
     measure_measure = preprocessNumber(row[MEASURE_MEASURE]);
     measure_measure = numeral(measure_measure).format(query.measure.numberFormat);
-
     $variation = $('<small class="variation-right pull-right"><i class="fa fa-lg fa-caret-'+sign+'" aria-hidden="true"></i> '+variation+'%</small>');
 
     $target.append($variation);
@@ -1065,18 +1114,42 @@ function getVariationSign(measure, variation) {
     return sign;
 
 };
-function getDimensionFilters(measure, exclude) {
-    filterArr = [];
 
+function getDimensionFilters(measure, exclude, current) {
+    filterArr = [];
     excluded = false;
     if(exclude != null) {
-        $elems = $('.dimension-selected:not([dimension="'+ exclude +'"])');
-        excluded = $('.dimension-selected[dimension="'+ exclude +'"]').length > 0;
-    } else {
-        $elems = $('.dimension-selected');
+        filtersGlobal = currentFiltersGlobal.slice();
+
+        filtersGlobal = filtersGlobal.filter(function(elem, index) {
+            if (!(current instanceof Array)) {
+                equalCurrent = elem.name == current
+            } else {
+                equalCurrent = false;
+                for (var index = 0; index < current.length; ++index) {
+                    if (current[index] == elem.name) 
+                        equalCurrent = true;
+                }
+            }
+            ret = measure.dimensions.indexOf(elem.dimension) != exclude && !equalCurrent
+            excluded = excluded || !ret;
+            return ret
+        })
+        filtersGlobal.forEach(function(elem) {
+            // $(this) is relative to each dimension-selected.
+            name = elem.name;
+
+            obj = {
+                'dimension': elem.dimension, 'name': name,
+                'drillDownName': null
+            };
+            filterArr.push(obj);
+        });
+        return {filterArr: filterArr, excluded: excluded};
 
     }
 
+    $elems = $('.dimension-selected');
     $elems.each(function() {
         // $(this) is relative to each dimension-selected.
         tabCurrent = tabs[$(this).attr('tab')]
@@ -1160,6 +1233,7 @@ function buildBarchart(params) {
 function buildTable(params) {
     query = params.query;
     var rows = params.rows;
+
     tableId = '#' + (query.tab.caption+query.measure.caption+query.dimension.caption).clean();
     $col = $(tableId);
     $col.empty();
@@ -1174,15 +1248,53 @@ function buildTable(params) {
     }
     $panelHeading = $('<div class="panel-heading" tooltip="'+toolt+'"/>');
     // $icon = $('<i class="fa fa-bar-chart-o fa-fw"></i>');
+
+    searchable = query.dimension.searchable == undefined || query.dimension.searchable
+
     caption = ' ' + query.measure.caption + ' por ' + query.dimension.caption;
     // $panelHeading.append($icon);
-    $panelHeading.append(caption);
+
+    classLeft = searchable ? 'pull-left searchable-title' : ''
+    if(query.measure.alternativeDimensions) {
+        $dropdownalt = $('<span class="dropdown dropselect dropdown-dimension"> \
+            <span class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true"> \
+            <span class="dropdown-label '+ classLeft +'" from-id='+query.measure.dimensions.indexOf(query.dimension)+'>'+caption+'</span> \
+            <span class="caret"></span> \
+          </span> \
+          </span>');
+        $ul = $('<ul class="dropdown-menu" role="menu" aria-labelledby="option-post-cleanup"></ul>');
+        for (var alt_key in query.measure.alternativeDimensions) {
+            var altDim = query.measure.alternativeDimensions[alt_key];
+            caption = ' ' + query.measure.caption + ' por ' + altDim.caption;
+            $ul.append('<li role="presentation"><a class="altdim" role="menuitem" to-id='+alt_key+' tabindex="-1">' + caption + '</a></li>')
+        }
+        $dropdownalt.append($ul);
+        $panelHeading.append($dropdownalt);
+    }
+    else
+        $panelHeading.append('<span class="'+ classLeft +'">'+caption+'</span>');
+
+    //  \
+
+    if(searchable) {
+        $panelHeading.append('<span class="pull-right"> \
+            <i class="searchable-search fa fa-search fa-lg"></i> \
+            <input class="pull-right searchable-input form-control active" type="text" name="search" placeholder="Pesquisar"> \
+            </span>');
+    }
+
+    // changeDimensionToAlternativeDimension(0, 0, 0, 1)
+    //
+    $panelHeading.append($('<div class="clearfix"></div>'));
     // 4*145 = 580 = 623
     // 2*145 = 290 = 333
     var height = query.dimension.rows*(160) - 58;// - 30;
     $panelBody = $('<div class="panel-body pre-scrollable scrollingbar" style="max-height: unset; height: '+ height +'px !important;">');
     $panel.append($panelHeading);
     var idx = getColumns(rows[0], query);
+    console.log(rows, idx);
+
+
     if(idx.EXTRA_CAPTIONS.length > 0) {
         $bread = $('<ul class="breadcrumb"/>');
         $todos = $('<li> <a href="javascript:void(0)" onclick="breadcrumbNavigate.call(this)" class="drillDownLevel caption"\
@@ -1209,6 +1321,20 @@ function buildTable(params) {
     if (query.drillDownCurrent || query.dimension.drillDownBy) {
         hasDrillDown = true;
     }
+    drillDownCurrent = '';
+    level = '';
+    if(hasDrillDown) {
+        if(!query.drillDownCurrent) {
+            drillDownCurrent = '['+ query.dimension.olapDimHierarchy +']';
+            level=0;
+        } else {
+            drillDownCurrent = query.drillDownCurrent;
+            level = query.level
+        }
+        $col.attr('drilldowncurrent', drillDownCurrent);
+        $col.attr('level', level);
+    }
+
     var qtyMeasures = 0;
     if(query.dimension.additionalMeasures) {
         qtyMeasures = query.dimension.additionalMeasures.length
@@ -1288,13 +1414,15 @@ function buildTable(params) {
         }
         $container.append($row);
     }
+    console.log('global', currentFiltersGlobal, 'current', query.filteredCurrent)
+    // currentFiltersGlobal = Array.from(new Set(currentFiltersGlobal.concat(query.filteredCurrent || [])));
 
     for (var row_key in rows) {
         var row = rows[row_key];
         selected=''
-        if (query.filteredCurrent) {
-            checkequals = query.filteredCurrent.filter(function(e) {
-                return e.name == row[idx.NAME]
+        if (currentFiltersGlobal) {
+            checkequals = currentFiltersGlobal.filter(function(e) {
+                return (e.name + e.dimension.caption).clean() == (row[idx.NAME] + query.dimension.caption).clean()
             });
             if (checkequals.length > 0) {
                 selected='dimension-selected';
@@ -1303,19 +1431,6 @@ function buildTable(params) {
         isCaption = row[idx.CAPTION] ? true : false
         captionText = isCaption ? row[idx.CAPTION] : row[idx.NAME];
         selectable = isCaption ? 'selectable' : '';
-        drillDownCurrent = '';
-        level = '';
-        if(hasDrillDown) {
-            if(!query.drillDownCurrent) {
-                drillDownCurrent = '['+ query.dimension.olapDimHierarchy +']';
-                level=0;
-            } else {
-                drillDownCurrent = query.drillDownCurrent;
-                level = query.level
-            }
-            $col.attr('drilldowncurrent', drillDownCurrent);
-            $col.attr('level', level);
-        }
 
         $row = $('<div class="row '+ selected + ' ' + selectable +'" \
             tab="'+query.tab.key+'"  measure="'+query.measure.key+'"  dimension="'+query.dimension.key+'" \
@@ -1330,13 +1445,18 @@ function buildTable(params) {
         } else {
             $row.append('<div class="col-xs-'+caption_columns+' caption no-popover">' + captionText + '</div>');
         }
-
         if(query.dimension.visualizationOptions.showDataBar) {
             // Builds the component for the measure - a bar
-
+            console.log(qtyMeasures)
             for (var i = 0; i <= qtyMeasures; i++) {
                 $colBar = $('<div class="col-xs-'+measure_columns+' col-no-padding "/>');
-                measure = numeral(preprocessNumber(row[idx.MEASURE+i])).format(query.measure.numberFormat);
+                if (i == 0) {
+                    fmt = query.measure.numberFormat
+                } else {
+                    fmt = query.dimension.additionalMeasures[i-1].numberFormat || query.measure.numberFormat
+                }
+
+                measure = numeral(preprocessNumber(row[idx.MEASURE+i])).format(fmt);
                 $bar = $('<div class="progress-bar bar-default" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"\
                     style="width: '+ (row[idx.MEASURE+i]/max_measures[i])*100 +'%; background-color: '+ color +'"><span>'+measure+'</span></div>');
                 if(i % 2 != 0)
@@ -1403,6 +1523,15 @@ function initTableEvents(tableId) {
                 timer = null;
                 // single click code
                 $this.toggleClass("dimension-selected");
+
+                // here i remove from global filters object if the element is unselected
+                if(!$this.hasClass('dimension-selected')) {
+                    function wasRemoved(globalFilter) {
+                        return !(globalFilter.dimension == dimension && globalFilter.name == $this.attr('name'))
+                    }
+                    currentFiltersGlobal = currentFiltersGlobal.filter(wasRemoved);
+                }
+                
                 filterArr = getDimensionFilters(measure).filterArr;
                 updateMeasure({
                     'tab_key': $this.attr('tab'),
@@ -1429,22 +1558,69 @@ function initTableEvents(tableId) {
         e.stopPropagation();
         doDrillDown($($(this).parent().parent()));
     });
+    $('.dropdown-dimension .altdim').unbind('click');
+    $('.dropdown-dimension .altdim').click(function(e) {
+        var $this = $(this);
+        from_id = $this.parent().parent().parent().find('.dropdown-label').attr('from-id')
+        to_id = $this.attr('to-id')
+        changeDimensionToAlternativeDimension(tabs.indexOf(query.tab), tab.measures.indexOf(query.measure), from_id, to_id)
+    });
+    $elems = $(".searchable-input").filter(function (i, e) {
+        return !$(e).is(':focus') && !$(e).val();
+    });
+    // if(!.val()) {
+    $elems.hide();
+    // }
+
+    $('.searchable-search').unbind('click');
+    $('.searchable-search').click(function(e) {
+        $($(e.target).parents()[1]).find('.searchable-title').css('width', '45%')
+        $($(e.target).parents()[1]).find('.searchable-input').show().focus();
+        // $($(e.target).parents()[1]).find('.searchable-input');
+        $(e.target).hide()
+    });
+    $('.searchable-input').focusout(function(e) {
+        if($(e.target).val()) {
+            return
+        }
+        $($(e.target).parents()[1]).find('.searchable-title').css('width', 'auto')
+        $($(e.target).parents()[1]).find('.searchable-search').show();
+        $(e.target).hide()
+
+        // $($(e.target).parents()[1]).find('.searchable-input');
+        // $(e.target).hide()
+    });
+
+    $(".searchable-input").keyup(function(e) {
+        query = $(e.target).val();
+        $($(e.target).parents()[2]).find('.container-fluid .selectable').show();
+        $($(e.target).parents()[2]).find('.container-fluid .selectable:not(:icontains("'+query+'"))').hide();
+
+    });
+
+
 }
 function doDrillDown(elem) {
     tab = tabs[elem.attr('tab')];
     measure = tab.measures[elem.attr('measure')];
     dimension = measure.dimensions[elem.attr('dimension')];
-    f = getDimensionFilters(measure, exclude=elem.attr('dimension'));
+    exclude = elem.attr('dimension')
+    current = elem.attr('name')
+    f = getDimensionFilters(measure, exclude=exclude, current=current);
     filterArr = f.filterArr
     excluded = f.excluded
 
     $dimensionData = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
 
-
     drillDownCurrent = $dimensionData.attr('drilldowncurrent');
     level = $dimensionData.attr('level');
     level = parseInt($dimensionData.attr('level'));
     level += 1;
+    currentFiltersGlobal = currentFiltersGlobal.filter(function(elem, index) {
+        equalCurrent = elem.name == current
+        ret = measure.dimensions.indexOf(elem.dimension) != exclude || equalCurrent
+        return ret
+    })
 
     if (level <= dimension.drillDownBy[0].levels) {
         updateTableWithDrillDown({
@@ -1461,7 +1637,7 @@ function doDrillDown(elem) {
     if(excluded) {
         updateMeasure({
             'tab_key': elem.attr('tab'),
-            'filter': filterArr.slice(0),
+            'filter': currentFiltersGlobal.slice(0),
             'initial_measure_key': elem.attr('measure'),
             'initial_dimension_key': elem.attr('dimension'),
             'dimension_key_not_updatable': elem.attr('dimension')
@@ -1558,6 +1734,54 @@ function getDrillDownName(col) {
     }
     return null;
 }
+
+function updateAltDimensionLabels(tab_key, measure_key, from_dim_key, to_alt_dim_key) {
+    tab = tabs[tab_key];
+    measure = tab.measures[measure_key];
+    if(!measure.alternativeDimensions) return;
+
+    for (var dim_key in measure.dimensions) {
+        var dimension = measure.dimensions[dim_key];
+        altDim = measure.alternativeDimensions[to_alt_dim_key]
+        tableId = '#' + (tab.caption+measure.caption+dimension.caption).clean();
+        new_caption = measure.caption + ' por ' + altDim.caption;
+        $lis = $(tableId + ' .dropdown-menu li a');
+        $($lis[0]).text(new_caption);
+    }
+}
+
+function changeDimensionToAlternativeDimension(tab_key, measure_key, from_dim_key, to_alt_dim_key) {
+    tab = tabs[tab_key];
+    measure = tab.measures[measure_key];
+
+    temp_alt = measure.alternativeDimensions[to_alt_dim_key];
+    temp_current = measure.dimensions[from_dim_key];
+    console.log('alt', temp_alt)
+    console.log('curr', temp_current)
+    if(!temp_alt || !temp_current) {
+        return
+    }
+    measure.alternativeDimensions[to_alt_dim_key] = temp_current;
+    measure.dimensions[from_dim_key] = temp_alt;
+
+    filterArr = getDimensionFilters(measure).filterArr
+
+    $col = $('#'+(tab.caption+measure.caption+temp_current.caption).clean());
+    $col.attr("id", (tab.caption+measure.caption+temp_alt.caption).clean())
+    $col.attr( "level", null )
+    $col.attr( "drilldowncurrent", null )
+    
+    createDimensionsForMeasure({
+        'tab_key': tab_key,
+        'measure_key':measure_key,
+        'only_update_this_dim_key':''+from_dim_key,
+        'filterArr': filterArr,
+        'changeDimension': true
+    });
+
+    updateAltDimensionLabels(tab_key, measure_key, from_dim_key, to_alt_dim_key);
+}
+
 function createDimensionsForMeasure(params) {
     params = params || {};
     measure_key = params.measure_key;
@@ -1566,6 +1790,7 @@ function createDimensionsForMeasure(params) {
     dimension_key_not_updatable = params.dimension_key_not_updatable || null;
     reloading = params.reloading || false;
     filterArr = params.filterArr || [];
+    only_update_this_dim_key = params.only_update_this_dim_key || false;
 
     if (measure_key == null || tab_key == null) {
         measure_key = $(this).attr('measure');
@@ -1577,17 +1802,22 @@ function createDimensionsForMeasure(params) {
     if (filterArr.length == 0 && !reloading) {
         // $divTargetTables.empty();
         // Build tables
-        if(dimension_key == null) {
+        if(dimension_key == null && !only_update_this_dim_key) {
             $divTargetTables.empty();
         }
         for (var dim_key in measure.dimensions) {
+            if(only_update_this_dim_key) {
+                if(dim_key != only_update_this_dim_key)
+                    continue;
+            }
             if (dim_key != dimension_key && dimension_key_not_updatable != dim_key) {
                 var dimension = measure.dimensions[dim_key];
                 $col = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
+
                 level = null;
                 drillDown = false;
                 colDrillDownName = null;
-                if($col.attr('level') != null) {
+                if($col.attr('level') != null && !only_update_this_dim_key) {
                     level = parseInt($col.attr('level'));
                     drillDown = true
                     colDrillDownName = getDrillDownName($col);
@@ -1613,7 +1843,7 @@ function createDimensionsForMeasure(params) {
                 query.measure.key = measure_key;
                 query.tab.key = tab_key;
                 query.dimension.key = dim_key;
-                if(drillDown) {
+                if(drillDown && !only_update_this_dim_key) {
                     query.drillDownCurrent = colDrillDownName;
                     query.level = level;
                 }
@@ -1624,13 +1854,17 @@ function createDimensionsForMeasure(params) {
 
     } else {
         for (var dim_key in measure.dimensions) {
+            if(only_update_this_dim_key) {
+                if(dim_key != only_update_this_dim_key)
+                    continue;
+            }
             if(dim_key != dimension_key && dim_key != dimension_key_not_updatable) {
                 var dimension = measure.dimensions[dim_key];
                 var $col = $('#'+(tab.caption+measure.caption+dimension.caption).clean());
                 level = null;
                 drillDown = false;
                 colDrillDownName = null;
-                if($col.attr('level') != null) {
+                if($col.attr('level') != null && !only_update_this_dim_key) {
                     level = parseInt($col.attr('level'));
                     drillDown = true
                     colDrillDownName = getDrillDownName($col);
@@ -1658,7 +1892,7 @@ function createDimensionsForMeasure(params) {
                     query.tab.key = tab_key;
                     query.dimension.key = dim_key;
                     query.filteredCurrent = filterArr;
-                    if(drillDown) {
+                    if(drillDown && !only_update_this_dim_key) {
                         query.drillDownCurrent = colDrillDownName;
                         query.level = level;
                     }

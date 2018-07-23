@@ -1,0 +1,66 @@
+{
+  "dashOptions": {
+    "refreshTime": 3000,
+    "startDateRangeMonthSubtract": 2
+  },
+  "filters": [
+    {
+      "initialValue": {
+        "first": true
+      },
+      "name": "oper",
+      "caption": "Operadora",
+      "olapDimHierarchy": "Operadora",
+      "olapDimLevel": "Operadora"
+    }
+  ],
+  "tabs": [
+    {
+      "caption": "Custo",
+      "measures": [
+        {
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Prestador Credenciado.Prest Credenciado",
+              "olapDimLevel": "Prestador Credenciado",
+              "caption": "Prestador Credenciado",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 3,
+              "columns": 6,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Prestador Solicitante",
+              "olapDimLevel": "Prestador Solicitante",
+              "caption": "Solicitante",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 3,
+              "columns": 6,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Informado (mil)",
+          "olapCube": "Sinistros, Receitas e Sinistralidade",
+          "olapMeasure": "Custo Informado (mil)",
+          "olapCatalog": "SGO-Analytics",
+          "dateDimension": "Data Competencia",
+          "numberFormat": "R$ #,##0mil",
+          "color": "#c59092",
+          "orientation": "up"
+        }
+      ]
+    }
+  ]
+}
