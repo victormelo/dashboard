@@ -3,7 +3,8 @@
     {
       "id": "pentaho",
       "context": "/pentaho",
-      "target": "http://177.135.142.133:8010/pentaho/"
+      "target": "http://177.38.243.154:4501/pentaho/"
+
     },
     {
       "id": "fig",

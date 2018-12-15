@@ -1,0 +1,1279 @@
+{
+  "dashOptions": {
+    "links": [
+      {
+        "caption": "Abrir como popup",
+        "anchorUrl": "/pentaho/api/repos/%3Apublic%3Aplugin-samples%3Apentaho-cdf%3Astart_here.xcdf/generatedContent"
+      },
+      {
+        "type": "newTab",
+        "caption": "Abrir como nova aba",
+        "anchorUrl": "http://www.google.com?p1=*&p2=*&p3=*&p4=*"
+      },
+      {
+        "type": "download",
+        "caption": "Fazer download",
+        "anchorUrl": "http://www.google.com"
+      }
+    ]
+  },
+  "filters": [
+    {
+      "olapDimHierarchy": "Especialidade",
+      "olapDimLevel": "Especialidade",
+      "caption": "Especialidade",
+      "componentType": "autocomplete",
+      "lazyLoading": true,
+      "initialValue": {
+        "olapDimMember": "ORTOPEDIA",
+        "first": false
+      }
+    },
+    {
+      "olapDimHierarchy": "Procedencia",
+      "olapDimLevel": "Procedencia",
+      "componentType": "autocomplete",
+
+      "caption": "Procedencia",
+      "initialValue": {
+        "first": true
+      }
+
+    }
+  ],
+  "tabs": [{
+      "caption": "Máscaras",
+      "measures": [
+        {
+          "caption": "Atendimentos",
+          "olapCube": "Atendimento Externo",
+          "olapMeasure": "Qtd Atendimentos Externos (Excluindo SADT)",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0, atendimentos",
+          "color": "#65aed9",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "xEmpresa",
+              "olapDimLevel": "Organizacao",
+              "caption": "Unidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Especialidade",
+              "olapDimLevel": "Especialidade",
+              "caption": "Especialidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Procedencia",
+              "olapDimLevel": "Procedencia",
+              "caption": "Procedência",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Carater de Atendimento",
+              "olapDimLevel": "Carater de Atendimento",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ]
+        ,
+          "alternativeDimensions": [
+            {
+              "olapDimHierarchy": "Medico do Atendimento",
+              "olapDimLevel": "Medico do Atendimento",
+              "caption": "Médico",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Hora Atendimento",
+                  "caption": "Hora",
+                  "levels": 2
+                }
+              ],
+              "olapDimHierarchy": "Hora Atendimento",
+              "olapDimLevel": "Periodo do Dia",
+              "caption": "Período do Dia",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Paciente - Faixa Etaria",
+              "olapDimLevel": "Faixa",
+              "caption": "Faixa Etária",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ]
+        },
+        {
+          "additionalWith": "member Measures.m as Measures.[Qtd Atendimentos Externos (Excluindo SADT)] / 30",
+          "caption": "Media Atendimentos",
+          "olapCube": "Atendimento Externo",
+          "olapMeasure": "Qtd Atendimentos Externos (Excluindo SADT)",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0,0",
+          "color": "#65aed9",
+          "colorFn": "(function (v) { return v < 500 ? '#ff0000' : '#cccccc' })",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "xEmpresa",
+              "olapDimLevel": "Organizacao",
+              "caption": "Unidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Especialidade",
+              "olapDimLevel": "Especialidade",
+              "caption": "Especialidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Procedencia",
+              "olapDimLevel": "Procedencia",
+              "caption": "Procedência",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Carater de Atendimento",
+              "olapDimLevel": "Carater de Atendimento",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "alternativeDimensions": [
+            {
+              "olapDimHierarchy": "Medico do Atendimento",
+              "olapDimLevel": "Medico do Atendimento",
+              "caption": "Médico",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Hora Atendimento",
+                  "caption": "Hora",
+                  "levels": 2
+                }
+              ],
+              "olapDimHierarchy": "Hora Atendimento",
+              "olapDimLevel": "Periodo do Dia",
+              "caption": "Período do Dia",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Paciente - Faixa Etaria",
+              "olapDimLevel": "Faixa",
+              "caption": "Faixa Etária",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ]
+        },
+        {
+          "tooltip": "Média de ocupação no período selecionado",
+          "caption": "Ocupação Média",
+          "olapCube": "xCenso",
+          "olapMeasure": "Taxa de Ocupacao",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0,%",
+          "color": "#b9c17e",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Leito.Bloco",
+              "olapDimLevel": "Bloco",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Clinica",
+              "olapDimLevel": "Clinica",
+              "caption": "Clínica",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            }
+          ]
+        },
+        {
+          "tooltip": "Média de ocupação no período selecionado",
+          "caption": "Ocupação Média 2",
+          "olapCube": "xCenso",
+          "olapMeasure": "Taxa de Ocupacao",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0,0%",
+          "color": "#b9c17e",
+          "orientation": "up",
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Leito.Bloco",
+              "olapDimLevel": "Bloco",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Clinica",
+              "olapDimLevel": "Clinica",
+              "caption": "Clínica",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "caption": "Internos",
+      "measures": [
+        {
+          "dimensions": [
+            {
+              "olapDimHierarchy": "xEmpresa",
+              "olapDimLevel": "Organizacao",
+              "caption": "Unidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Especialidade",
+              "olapDimLevel": "Especialidade",
+              "caption": "Especialidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Procedencia",
+              "olapDimLevel": "Procedencia",
+              "caption": "Procedência",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Carater de Atendimento",
+              "olapDimLevel": "Carater de Atendimento",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "alternativeDimensions": [
+            {
+              "olapDimHierarchy": "Medico do Atendimento",
+              "olapDimLevel": "Medico do Atendimento",
+              "caption": "Médico",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Hora Atendimento",
+                  "caption": "Hora",
+                  "levels": 2
+                }
+              ],
+              "olapDimHierarchy": "Periodo do Dia",
+              "olapDimLevel": "Periodo do Dia",
+              "caption": "Período do Dia",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Paciente - Faixa Etaria",
+              "olapDimLevel": "Faixa",
+              "caption": "Faixa Etária",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Internações",
+          "olapCube": "Atendimento Interno",
+          "olapMeasure": "Qtd de Internacoes",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0,",
+          "color": "#226a72",
+          "orientation": "up"
+        },
+        {
+          "visualizationOptions": {
+            "showMonthlyVariation": true,
+            "showTrendLine": true
+          },
+          "dimensions": [
+            {
+              "olapDimHierarchy": "xEmpresa",
+              "olapDimLevel": "Organizacao",
+              "caption": "Unidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showMonthlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Especialidade",
+              "olapDimLevel": "Especialidade",
+              "caption": "Especialidade",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showMonthlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Procedencia",
+              "olapDimLevel": "Procedencia",
+              "caption": "Procedência",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showMonthlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Carater de Atendimento",
+              "olapDimLevel": "Carater de Atendimento",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showMonthyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "alternativeDimensions": [
+            {
+              "olapDimHierarchy": "Medico do Atendimento",
+              "olapDimLevel": "Medico do Atendimento",
+              "caption": "Médico",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "Hora Atendimento",
+                  "caption": "Hora",
+                  "levels": 2
+                }
+              ],
+              "olapDimHierarchy": "Periodo do Dia",
+              "olapDimLevel": "Periodo do Dia",
+              "caption": "Período do Dia",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Paciente - Faixa Etaria",
+              "olapDimLevel": "Faixa",
+              "caption": "Faixa Etária",
+              "topFunction": "TopCount",
+              "topNumber": 100,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Internações var mes",
+          "olapCube": "Atendimento Interno",
+          "olapMeasure": "Qtd de Internacoes",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0,",
+          "color": "#226a72",
+          "orientation": "up"
+        },
+        {
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Leito.Bloco",
+              "olapDimLevel": "Bloco",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Clinica",
+              "olapDimLevel": "Clinica",
+              "caption": "Clínica",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Permanência",
+          "olapCube": "xCenso",
+          "olapMeasure": "Media de Permanencia",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0,0",
+          "color": "#58a889",
+          "orientation": "up"
+        },
+        {
+          "visualizationOptions": {
+            "showYearlyVariation": false,
+            "showTrendLine": true
+          },
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Leito.Bloco",
+              "olapDimLevel": "Bloco",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Clinica",
+              "olapDimLevel": "Clinica",
+              "caption": "Clínica",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Permanência sem var",
+          "olapCube": "xCenso",
+          "olapMeasure": "Media de Permanencia",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0,0",
+          "color": "#58a889",
+          "orientation": "up"
+        },
+        {
+          "visualizationOptions": {
+            "showYearlyVariation": false,
+            "showTrendLine": false
+          },
+          "dimensions": [
+            {
+              "olapDimHierarchy": "Leito.Bloco",
+              "olapDimLevel": "Bloco",
+              "caption": "Carater de Atendimento",
+              "topFunction": "TopCount",
+              "topNumber": 50,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            },
+            {
+              "olapDimHierarchy": "Clinica",
+              "olapDimLevel": "Clinica",
+              "caption": "Clínica",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 4,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": false,
+                "showTrendLine": false
+              }
+            }
+          ],
+          "caption": "Permanência sem spark",
+          "olapCube": "xCenso",
+          "olapMeasure": "Media de Permanencia",
+          "olapCatalog": "SGH Intelligence",
+          "dateDimension": "xData",
+          "numberFormat": "#.##0,0",
+          "color": "#58a889",
+          "orientation": "up"
+        }
+      ]
+    },
+    {"caption": "Cirurgias",
+                      "measures": [{"caption": "Cirurgias",
+                                  "olapCube": "Cirurgia",
+                                  "olapMeasure": "Qtd Cirurgias",
+                                  "olapCatalog": "SGH Intelligence",
+                                  "dateDimension": "xData",
+                                  "numberFormat": "#.##0,",
+                                  "color": "#a0d0aa",
+                                  "orientation": "up",
+                                  "globalFiltersOptions": {"cc": {"disabled": true}},
+                                  "dimensions": [{
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {"olapDimHierarchy": "Medico Cirurgiao",
+                                                "olapDimLevel": "Medico Cirurgiao",
+                                                "caption": "Cirurgião",
+                                                "topFunction": "TopCount",
+                                                "topNumber": 10,
+                                                "rows": 3,
+                                                "columns": 4,
+                                                "visualizationType": "table",
+                                                "visualizationOptions": {"showDataBar": true,
+                                                                       "showYearlyVariation": true,
+                                                                       "showTrendLine": true}},
+                                               {"olapDimHierarchy": "Tipo Paciente",
+                                                "olapDimLevel": "Tipo Paciente",
+                                                "caption": "Tipo Paciente",
+                                                "topFunction": "TopCount",
+                                                "topNumber": 3,
+                                                "rows": 1,
+                                                "columns": 4,
+                                                "visualizationType": "table",
+                                                "visualizationOptions": {"showDataBar": true,
+                                                                       "showYearlyVariation": true,
+                                                                       "showTrendLine": true}},
+                                               {"olapDimHierarchy": "Sala Cirurgica",
+                                                "olapDimLevel": "Sala Cirurgica",
+                                                "caption": "Sala Cirúrgica",
+                                                "topFunction": null,
+                                                "topNumber": null,
+                                                "rows": 2,
+                                                "columns": 4,
+                                                "visualizationType": "table",
+                                                "visualizationOptions": {"showDataBar": true,
+                                                                       "showYearlyVariation": true,
+                                                                       "showTrendLine": true}}]},
+                                 {"caption": "Procedimentos",
+                                  "olapCube": "Cirurgia",
+                                  "olapMeasure": "Qtd Procedimentos",
+                                  "olapCatalog": "SGH Intelligence",
+                                  "dateDimension": "xData",
+                                  "numberFormat": "#.##0,",
+                                  "color": "#58a989",
+                                  "orientation": "up",
+                                  "globalFiltersOptions": {"cc": {"disabled": true}},
+                                  "dimensions": [{
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Medico Cirurgiao",
+              "olapDimLevel": "Medico Cirurgiao",
+              "caption": "Cirurgião",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {"olapDimHierarchy": "Tipo Paciente",
+                                                "olapDimLevel": "Tipo Paciente",
+                                                "caption": "Tipo Paciente",
+                                                "topFunction": "TopCount",
+                                                "topNumber": 3,
+                                                "rows": 1,
+                                                "columns": 4,
+                                                "visualizationType": "table",
+                                                "visualizationOptions": {"showDataBar": true,
+                                                                       "showYearlyVariation": true,
+                                                                       "showTrendLine": true}},
+                                               {"olapDimHierarchy": "xProcedimento.TUSS",
+                                                "olapDimLevel": "Grupo TUSS",
+                                                "caption": "Procedimento TUSS",
+                                                "drillDownBy": [{"olapDimHierarchy": "xProcedimento.TUSS",
+                                                               "caption": "Procedimento TUSS",
+                                                               "levels": 2}],
+                                                "topFunction": "TopCount",
+                                                "topNumber": 10,
+                                                "rows": 2,
+                                                "columns": 4,
+                                                "visualizationType": "table",
+                                                "visualizationOptions": {"showDataBar": true,
+                                                                       "showYearlyVariation": true,
+                                                                       "showTrendLine": true}}
+          ]},
+                                 {"dimensions": [
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Medico Cirurgiao",
+              "olapDimLevel": "Medico Cirurgiao",
+              "caption": "Cirurgião",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Tipo Paciente",
+              "olapDimLevel": "Tipo Paciente",
+              "caption": "Tipo Paciente",
+              "topFunction": "TopCount",
+              "topNumber": 3,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Sala Cirurgica",
+              "olapDimLevel": "Sala Cirurgica",
+              "caption": "Sala Cirúrgica",
+              "topFunction": null,
+              "topNumber": null,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Ocupação (horas)",
+                                  "olapCube": "Cirurgia",
+                                  "olapMeasure": "Duracao Cirurgia (h)",
+                                  "olapCatalog": "SGH Intelligence",
+                                  "dateDimension": "xData",
+                                  "numberFormat": "#.##0,",
+                                  "color": "#9fad84",
+                                  "orientation": "up",
+                                  "globalFiltersOptions": {"cc": {"disabled": true}}}]},
+                     {"caption": "Faturamento",
+                      "measures": [{"caption": "Valor Apresentado",
+                                  "olapCube": "Faturamento",
+                                  "olapMeasure": "Vlr Faturado",
+                                  "olapCatalog": "SGH Intelligence",
+                                  "dateDimension": "xData",
+                                  "numberFormat": "$#.##0,",
+                                  "color": "#abd29a",
+                                  "orientation": "up",
+                                  "globalFiltersOptions": {"cc": {"useOlapDimHierarchy": "Centro Custos Conta"}},
+                                  "filters": [{"olapDimHierarchy": "Conta Hosp - Status de Faturamento",
+                                             "olapDimLevel": "Status de Faturamento",
+                                             "olapDimMember": "APRESENTADA"}],
+                                  "dimensions": [{
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {"olapDimHierarchy": "Centro Custos Conta",
+                                                "olapDimLevel": "Centro Custos",
+                                                "caption": "Centro Custos (Conta)",
+                                                "topFunction": "TopCount",
+                                                "topNumber": 10,
+                                                "rows": 3,
+                                                "columns": 4,
+                                                "visualizationType": "table",
+                                                "visualizationOptions": {"showDataBar": true,
+                                                                       "showYearlyVariation": true,
+                                                                       "showTrendLine": true}},
+                                               {"olapDimHierarchy": "Tipo Paciente",
+                                                "olapDimLevel": "Tipo Paciente",
+                                                "caption": "Tipo Paciente",
+                                                "topFunction": "TopCount",
+                                                "topNumber": 3,
+                                                "rows": 1,
+                                                "columns": 4,
+                                                "visualizationType": "table",
+                                                "visualizationOptions": {"showDataBar": true,
+                                                                       "showYearlyVariation": true,
+                                                                       "showTrendLine": true}},
+                                               {"olapDimHierarchy": "xProcedimento.TUSS",
+                                                "olapDimLevel": "Grupo TUSS",
+                                                "caption": "Procedimento TUSS",
+                                                "drillDownBy": [{"olapDimHierarchy": "xProcedimento.TUSS",
+                                                               "caption": "Procedimento TUSS",
+                                                               "levels": 2}],
+                                                "topFunction": "TopCount",
+                                                "topNumber": 10,
+                                                "rows": 2,
+                                                "columns": 4,
+                                                "visualizationType": "table",
+                                                "visualizationOptions": {"showDataBar": true,
+                                                                       "showYearlyVariation": true,
+                                                                       "showTrendLine": true}}]},
+                                 {"dimensions": [
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Centro Custos Conta",
+              "olapDimLevel": "Centro Custos",
+              "caption": "Centro Custos (Conta)",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Tipo Paciente",
+              "olapDimLevel": "Tipo Paciente",
+              "caption": "Tipo Paciente",
+              "topFunction": "TopCount",
+              "topNumber": 3,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "xProcedimento.TUSS",
+              "olapDimLevel": "Grupo TUSS",
+              "caption": "Procedimento TUSS",
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "xProcedimento.TUSS",
+                  "caption": "Procedimento TUSS",
+                  "levels": 2
+                }
+              ],
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Contas Apresentadas",
+                                  "olapCube": "Faturamento",
+                                  "olapMeasure": "Qtd Contas",
+                                  "olapCatalog": "SGH Intelligence",
+                                  "dateDimension": "xData",
+                                  "numberFormat": "#.##0,",
+                                  "color": "#65aed9",
+                                  "orientation": "up",
+                                  "globalFiltersOptions": {"cc": {"useOlapDimHierarchy": "Centro Custos Conta"}},
+                                  "filters": [{"olapDimHierarchy": "Conta Hosp - Status de Faturamento",
+                                             "olapDimLevel": "Status de Faturamento",
+                                             "olapDimMember": "APRESENTADA"}]},
+                                 {"dimensions": [
+            {
+              "olapDimHierarchy": "Convenio",
+              "olapDimLevel": "Convenio",
+              "caption": "Convênio",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Centro Custos Conta",
+              "olapDimLevel": "Centro Custos",
+              "caption": "Centro Custos (Conta)",
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 3,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "Tipo Paciente",
+              "olapDimLevel": "Tipo Paciente",
+              "caption": "Tipo Paciente",
+              "topFunction": "TopCount",
+              "topNumber": 3,
+              "rows": 1,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            },
+            {
+              "olapDimHierarchy": "xProcedimento.TUSS",
+              "olapDimLevel": "Grupo TUSS",
+              "caption": "Procedimento TUSS",
+              "drillDownBy": [
+                {
+                  "olapDimHierarchy": "xProcedimento.TUSS",
+                  "caption": "Procedimento TUSS",
+                  "levels": 2
+                }
+              ],
+              "topFunction": "TopCount",
+              "topNumber": 10,
+              "rows": 2,
+              "columns": 4,
+              "visualizationType": "table",
+              "visualizationOptions": {
+                "showDataBar": true,
+                "showYearlyVariation": true,
+                "showTrendLine": true
+              }
+            }
+          ],
+          "caption": "Índice Glosa",
+                                  "olapCube": "Faturamento",
+                                  "olapMeasure": "Indice Glosa",
+                                  "olapCatalog": "SGH Intelligence",
+                                  "dateDimension": "xData",
+                                  "numberFormat": "#.##0,%",
+                                  "color": "#1c859a",
+                                  "orientation": "up",
+                                  "globalFiltersOptions": {"cc": {"useOlapDimHierarchy": "Centro Custos Conta"}},
+                                  "filters": [{"olapDimHierarchy": "Conta Hosp - Status de Faturamento",
+                                             "olapDimLevel": "Status de Faturamento",
+                                             "olapDimMember": "APRESENTADA"}]}]}]}

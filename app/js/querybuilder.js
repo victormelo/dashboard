@@ -1,10 +1,11 @@
-function QueryBuilder(query, successFunction) {
+function QueryBuilder(query, successFunction, errorFn) {
     this.query = query;
     this.successFunction = successFunction;
     var that = this;
     this.callback = function (xmla, options, response) {
         that.successFunction(xmla, options, response, that.query);
     };
+    this.errorFn = errorFn
 };
 
 QueryBuilder.prototype.run = function(){
@@ -14,6 +15,8 @@ QueryBuilder.prototype.run = function(){
         listeners: {
             events: Xmla.EVENT_ERROR,
             handler: function(eventName, eventData, xmla){
+                if (thisone.errorFn) 
+                    thisone.errorFn()
                 var details = '';
                 if (thisone.query.dimension) {
                     details = 'Erro ao executar consulta à  '+thisone.query.dimension.caption+' por '+ thisone.query.measure.caption;
@@ -24,10 +27,15 @@ QueryBuilder.prototype.run = function(){
                 } else {
                     details = 'Erro ao executar a consulta';
                 }
-
+                desc = $(xmla.responseXML).find("desc").text()
+                if(desc) {
+                    desc = "<br><br>" + desc
+                } else {
+                    desc = ''
+                }
                 $.toast({
                     heading: 'Oops',
-                    text: details,
+                    text: details + desc,
                     position: 'bottom-right',
                     icon: 'error',
                     hideAfter: 8000

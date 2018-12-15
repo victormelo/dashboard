@@ -1,27 +1,39 @@
 {
+  "postRefreshFn": "(function () { console.log('Hello!!'); })",
   "dashOptions": {
     "refreshTime": 3000,
-    "startDateRangeMonthSubtract": 1
+    "startDateRangeMonthSubtract": 1,
+    "startDateRangeDaySubtract": 1,
+    "links": [{"caption": "hi",
+      "anchorUrl": "dash.json",
+      "type": "download"
+    }]
+
   },
   "filters": [
     {
       "initialValue": {
-        "first": true
+        "first": false
       },
       "name": "oper",
-      "caption": "Operadora",
+      "olapDimLevel": "Operadora",
       "olapDimHierarchy": "Operadora",
-      "olapDimLevel": "Operadora"
+      "caption": "Operadora",
+      "componentType": "autocomplete",
+      "lazyLoading": true
+
     },
     {
       "initialValue": {
         "olapDimMember": "Passou Pelo Autorizador",
-        "first": false
+        "first": true
       },
       "name": "autorizador",
       "caption": "Uso do Autorizador",
       "olapDimHierarchy": "Autorizador Eletronico",
-      "olapDimLevel": "Autorizador Eletronico"
+      "olapDimLevel": "Autorizador Eletronico",
+      "componentType": "autocomplete"
+
     }
   ],
   "tabs": [
@@ -43,6 +55,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": false,
                 "showTrendLine": false
               }
@@ -67,6 +80,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -89,6 +103,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -105,16 +120,12 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": false,
                 "showTrendLine": false
               }
             }
           ],
-          "globalFiltersOptions": {
-            "autorizador": {
-              "disabled": true
-            }
-          },
           "filters": [
             {
               "olapDimHierarchy": "Servico - Tipo",
@@ -124,11 +135,16 @@
           ],
           "caption": "Diárias",
           "olapCube": "Sinistros",
+          "visualizationOptions": {
+            "showYearlyVariation": true,
+            "showTrendLine": true
+          },
           "olapMeasure": "Qtd de Diarias",
           "olapCatalog": "SGO-Analytics",
           "dateDimension": "Data Competencia",
-          "numberFormat": "R$ #,##0mil",
+          "numberFormat": "R$ 0,##0mil",
           "color": "#ee8784",
+          "colorFn":  "(function (value) { return '#ff0000' })",
           "orientation": "up"
         },
         {
@@ -145,6 +161,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": false,
                 "showTrendLine": false
               }
@@ -161,6 +178,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": false,
                 "showTrendLine": false
               }
@@ -176,6 +194,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -191,6 +210,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -213,6 +233,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -235,6 +256,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -251,16 +273,12 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": false,
                 "showTrendLine": false
               }
             }
           ],
-          "globalFiltersOptions": {
-            "autorizador": {
-              "disabled": true
-            }
-          },
           "filters": [
             {
               "olapDimHierarchy": "Servico - Tipo",
@@ -274,7 +292,7 @@
           "olapMeasure": "Custo Analisado (mil)",
           "olapCatalog": "SGO-Analytics",
           "dateDimension": "Data Competencia",
-          "numberFormat": "R$ #,##0mil",
+          "numberFormat": "R$ 0,##0mil",
           "color": "#ed8455",
           "orientation": "up"
         },
@@ -292,6 +310,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": false,
                 "showTrendLine": false
               }
@@ -308,6 +327,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": false,
                 "showTrendLine": false
               }
@@ -323,6 +343,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -338,6 +359,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -360,6 +382,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -382,6 +405,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": true,
                 "showTrendLine": true
               }
@@ -398,16 +422,12 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
+                "showMonthlyVariation": true,
                 "showYearlyVariation": false,
                 "showTrendLine": false
               }
             }
           ],
-          "globalFiltersOptions": {
-            "autorizador": {
-              "disabled": true
-            }
-          },
           "tooltip": "Custo médio por internação",
           "additionalWith": "member Measures.cm as Measures.[Custo dos Itens Analisados]/ Measures.[Qtd de Internacoes]",
           "filters": [

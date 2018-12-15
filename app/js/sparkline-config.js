@@ -1,7 +1,8 @@
 SPARKLINE_CONFIG = {};
 
 callback = function(sparkline, options, point) {
-    value = numeral(point.y).format($(sparkline.el).data('format'));
+    fmt = $(sparkline.el).data('format')
+    value = format(fmt, point.y)
     u12Months = $(sparkline.el).data('u12Months');
     month = point.x;
     date = '({monthName}/{year})'.formatParams({

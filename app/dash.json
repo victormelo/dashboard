@@ -1,4 +1,27 @@
-{"tabs": [
+{
+  "postRefreshFn": "(function () { console.log('Refresh!!'); })",
+  "postRenderFn": "(function () { console.log('Render!!'); })",
+  "dashOptions": {
+    "refreshTime": 3000,
+    "startDateRangeMonthSubtract": 24,
+    "startDateRangeDaySubtract": 1,
+    "links": [{"caption": "hi",
+      "anchorUrl": "dash.json",
+      "type": "download"
+    }, 
+    {"caption": "testing it",
+      "anchorUrl": "dash.json",
+      "type": "download"
+    },
+    {"caption": "hi2",
+      "anchorUrl": "dash.json?p1=*&p2=*&p3=*&p4=*",
+      "type": "download"
+    }
+    
+  ]
+
+  },
+  "tabs": [
     {
       "caption": "Internos",
       "measures": [
@@ -23,7 +46,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
-                "showYearlyVariation": true,
+                "showMonthlyVariation": true,
                 "showTrendLine": true
               }
             },
@@ -45,7 +68,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
-                "showYearlyVariation": true,
+                "showMonthlyVariation": true,
                 "showTrendLine": true
               }
             },
@@ -60,7 +83,7 @@
               "visualizationType": "table",
               "visualizationOptions": {
                 "showDataBar": true,
-                "showYearlyVariation": true,
+                "showMonthlyVariation": true,
                 "showTrendLine": true
               }
             },
@@ -125,7 +148,7 @@
                                                 "columns": 4,
                                                 "visualizationType": "table",
                                                 "visualizationOptions": {"showDataBar": true,
-                                                                       "showYearlyVariation": true,
+                                                                       "showMonthlyVariation": true,
                                                                        "showTrendLine": true}},
                                                {"olapDimHierarchy": "Tipo Paciente",
                                                 "olapDimLevel": "Tipo Paciente",
@@ -156,6 +179,7 @@
                                   "dateDimension": "xData",
                                   "numberFormat": "#,##0",
                                   "color": "#58a989",
+                                  "colorFn":  "(function (value) { return '#ff0000' })",
                                   "orientation": "up",
                                   "globalFiltersOptions": {"cc": {"disabled": true}},
                                   "dimensions": [{

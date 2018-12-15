@@ -7767,15 +7767,21 @@ body {
   100% {
     transform: rotate(360deg); } }
 
-#app .anchor {
+#anchor-div {
   position: fixed;
-  bottom: 0px;
+  bottom: 5px;
   right: 0px;
   margin: 1px;
-  padding: 0px 0.5rem;
+  text-align: right;
+  width: auto;
+  z-index: 9999; }
+
+.anchor {
+  margin: 5px 5px 5px 5px;
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
   text-align: right;
   background-color: #323232;
-  border-radius: 2px;
+  border-radius: 5px;
   color: #FFF;
   width: auto;
   z-index: 9999; }

@@ -8,7 +8,6 @@ MEASURE_MEASURE = 0
 VARIACAO_MEASURE = 1
 TENDENCIA_MEASURE = 2
 var currentFiltersGlobal = [];
-
 function getColumns(row, query) {
     var offset = query.level || 0;
     var offsetMeasures = 0;
@@ -45,7 +44,7 @@ function getColumns(row, query) {
     }
     if(hasDrillDown) {
         ret_measure = measureidx + offset
-        console.log('offset is', offset)
+        // console.log('offset is', offset)
     } else {
         ret_measure = measureidx + offset + add
 
@@ -83,7 +82,8 @@ if (location.search) {
 }
 
 var tabs = null;
-var semaphoreGlobalFilter  = 0, all_queued = false;
+var semaphoreGlobalFilter  = 0, all_queued_global_filter = false;
+var semaphoreDimensions  = 0, all_queued_dimensions = false;
 var global_filters = null;
 var sidemenu = null;
 if(GET.startdate) {
@@ -99,6 +99,7 @@ if(GET.enddate) {
 }
 // start.format('YMMDD')
 // moment("12-25-1995", "MM-DD-YYYY");
+
 // http://177.135.142.133:8010/pentaho/Home usuário `bi` senha `260788spd`
 // "target": "http://177.135.142.133:8010/pentaho"
 //
@@ -116,20 +117,43 @@ if(GET.path) {
     d = GET.d || 'ovvt';
     jsonURL = '/pentaho/plugin/ppa/api/dashmd?paramd={d}'.formatParams({'d': d});
 }
+postRefreshFn = null;
+postRenderFn = null;
+amount_refreshes = 0
+start_tab_key = 0
+if (GET.st){
+    start_tab_key = GET.st
+}
 
-console.log(jsonURL)
-// $.get( "dash-drilldown-alternative.json", function( data ) {
-$.getJSON(jsonURL, function( data ) {
+// console.log(jsonURL)
+if (GET.debug){
+    $.get( "today.json", loadDash)
+} else {
+    $.getJSON(jsonURL, loadDash)
+}
+function loadDash(data) {
     console.log('dash');
+    if (data.postRefreshFn) {
+        postRefreshFn = eval(data.postRefreshFn)
+    }
+
+    if (data.postRenderFn) {
+        postRenderFn = eval(data.postRenderFn)
+    }
+
     tabs = data.tabs;
     global_filters = data.filters;
     sidemenu = data.sideMenu;
-
     if(data.dashOptions && data.dashOptions.startDateRangeMonthSubtract) {
         start = moment().subtract(data.dashOptions.startDateRangeMonthSubtract, 'month').startOf('month');
         end = moment().subtract(data.dashOptions.startDateRangeMonthSubtract, 'month').endOf('month');
-
     }
+    
+    if(data.dashOptions && data.dashOptions.startDateRangeDaySubtract) {
+        end = end.subtract(data.dashOptions.startDateRangeDaySubtract, 'day')
+    }
+    
+    
     for (var key in global_filters) {
         var global_filter = global_filters[key];
         if(GET[global_filter.name]) {
@@ -141,44 +165,33 @@ $.getJSON(jsonURL, function( data ) {
     try {
         buildAnchors(data.dashOptions.links, global_filters);
     } catch(err) {
-        console.log('no anchor links defined');
+        console.log('no anchor links defined', err);
     }
     if(data.dashOptions && data.dashOptions.refreshTime) {
         setInterval(reload, data.dashOptions.refreshTime*1000);
     }
 
-});
-
+}
+// download | newType | -> null é modal
 function buildAnchors(links, global_filters) {
     $target = $('#app');
+    $target.append('<div id="anchor-div"></div>')
+    $target = $('#anchor-div')
     for (var link_key in links) {
         var link = links[link_key];
-        $target.append('<a href="javascript:void(0)" anchorUrl='+link.anchorUrl+' class="anchor">'+link.caption+'</a>')
-        $target.append(
-        '<div class="modal fade" tabindex="-1" role="dialog" id="'+link.caption.clean()+'"> \
-          <div class="modal-dialog modal-lg" role="document"> \
-            <div class="modal-content"> \
-                <div class="modal-header"> \
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> \
-                </div> \
-                <div class="modal-body"> \
-                    <iframe src="" width="99.6%" frameborder="0"></iframe> \
-                </div> \
-            </div> \
-          </div> \
-        </div>');
-    }
 
-    $('.anchor').click(function() {
-        $this = $(this);
-        url = $this.attr('anchorUrl');
-
+        url = link.anchorUrl;
+        
         var indices = [];
         for(var i=0; i<url.length;i++) {
             if (url[i] === "*") indices.push(i);
         }
         for (var i = indices.length - 1; i >= 2; i--) {
-            var global_filter = global_filters[i-2];
+            try {
+                var global_filter = global_filters[i-2];
+            } catch(err) {
+                continue
+            }
             var dimMember = $('#'+global_filter.name).find('option:selected:not([value="nofilter_true"])').val();
             url = url.removeAt(indices[i], 1);
 
@@ -192,19 +205,43 @@ function buildAnchors(links, global_filters) {
             url = url.removeAt(indices[0], 1);
             url = url.insert(indices[0], escape(end.format('YMMDD')));
         }
+        if (link.type == "download") {
+            $target.append('<a href='+url+' class="anchor" download>'+link.caption+'</a>')
 
-        $this = $(this)
-        $('#'+$this.text().clean()).modal('show');
-        $('#'+$this.text().clean()).on('shown.bs.modal', function () {
-            $iframe = $('#'+$this.text().clean() + ' iframe')
-            $iframe.attr("src", url);
-            $iframe.on('load', function() {
-                this.height = "";
+        } else if(link.type == "newTab") {
+            $target.append('<a href='+url+' class="anchor" target="_blank">'+link.caption+'</a>')
+        } else {
+            $target.append('<a href="javascript:void(0)" anchorUrl='+url+' class="anchor">'+link.caption+'</a>')
+            $target.append(
+            '<div class="modal fade" tabindex="-1" role="dialog" id="'+link.caption.clean()+'"> \
+            <div class="modal-dialog modal-lg" role="document"> \
+                <div class="modal-content"> \
+                    <div class="modal-header"> \
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> \
+                    </div> \
+                    <div class="modal-body"> \
+                        <iframe src="" width="99.6%" frameborder="0"></iframe> \
+                    </div> \
+                </div> \
+            </div> \
+            </div>');
+            $('.anchor').click(function() {
+        
+                $this = $(this)
+                $('#'+$this.text().clean()).modal('show');
+                $('#'+$this.text().clean()).on('shown.bs.modal', function () {
+                    $iframe = $('#'+$this.text().clean() + ' iframe')
+                    $iframe.attr("src", url);
+                    $iframe.on('load', function() {
+                        this.height = "";
+        
+                        this.height = $('.modal-content').height() - 45 + "px";
+                    })
+                });
+            });
+        }
+    }
 
-                this.height = $('.modal-content').height() - 45 + "px";
-            })
-        });
-    });
 }
 
 function initPopover($elem, currentRow, drillDownBy, idx, $drillDownData) {
@@ -241,7 +278,7 @@ function reload() {
     try {
         var measure = tabs[tab_key].measures[measure_key];
     } catch(err) {
-        var measure = tabs[0].measures[0];
+        var measure = tabs[start_tab_key].measures[0];
     }
     filterArr = getDimensionFilters(measure).filterArr;
     updateMeasure({
@@ -295,7 +332,7 @@ function initDatePicker() {
            thisMonth: [moment().startOf('month'), moment().endOf('month')],
            lastMonth: [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
            last3: [moment().subtract(3, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-           last12: [moment().subtract(13, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+           last12: [moment().subtract(12, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
            thisMonthLastYear: [moment().subtract(1, 'year').subtract(1, 'month').startOf('month'), moment().subtract(1, 'year').subtract(1, 'month').endOf('month')]
         },
         customRangeLabels: {
@@ -361,6 +398,7 @@ function breadcrumbNavigate () {
 
 function makeQuery(params) {
     crossjoin = 'NonEmptyCrossJoin'
+    
     dimension = params.dimension || null;
     tab = params.tab || null;
     measure = params.measure || null;
@@ -383,7 +421,7 @@ function makeQuery(params) {
         // console.log(filteredWith, dimensionName)
     }
     selectMainMeasure = 'Measures.[{olapMeasure}]'.formatParams({'olapMeasure': measure.olapMeasure});
-    selectYearlyVariation = 'Measures.[Variacao Anual]';
+    selectYearlyVariation = 'Measures.[Variacao]';
     selectTrendline = 'Measures.TendenciaU12M';
 
     select = [selectMainMeasure, selectYearlyVariation, selectTrendline].join(', ');
@@ -396,8 +434,23 @@ function makeQuery(params) {
         enddate = end.clone();
     }
 
+    // for dimension, either monthly or yearly
     startLastYear = startdate.clone().subtract(1, 'year');
     endLastYear = enddate.clone().subtract(1, 'year');
+
+    if(dimension && dimension.visualizationOptions) {
+        if(dimension.visualizationOptions.showMonthlyVariation) {
+            dimension.visualizationOptions.showYearlyVariation = true
+            startLastYear = startdate.clone().subtract(1, 'month');
+            endLastYear = enddate.clone().subtract(1, 'month');
+        } 
+    } else if(measure && measure.visualizationOptions) {
+        if(measure.visualizationOptions.showMonthlyVariation) {
+            startLastYear = startdate.clone().subtract(1, 'month');
+            endLastYear = enddate.clone().subtract(1, 'month');
+        }
+    }
+
     startU12 = enddate.clone().subtract(12, 'month').startOf('month');
     endU12 = enddate.clone().subtract(1, 'month').endOf('month');
     var u12Months = [];
@@ -420,7 +473,6 @@ function makeQuery(params) {
         dim = '[{olapDimHierarchy}].[{olapDimLevel}].Members'.formatParams(
                         {'olapDimHierarchy': dimension.olapDimHierarchy, 'olapDimLevel': dimension.olapDimLevel});
         selectComplement = ', non empty Order({dim}, Measures.atual, BDESC) on 1'.formatParams({'dim': dim});
-
         if(dimension.visualizationType == 'table') {
             mn = ('member Measures.[mn] as [{olapDimHierarchy}].CurrentMember.Name').formatParams({'olapDimHierarchy': dimension.olapDimHierarchy});
             selectMn = 'Measures.[mn],';
@@ -645,7 +697,7 @@ function makeQuery(params) {
                 member Measures.anterior as \
                     {aggregateFunction}({[{dateDimension}].{previousStartDate} : \
                     [{dateDimension}].{previousEndDate}}, Measures.[{olapMeasure}]) \
-                member Measures.[Variacao Anual] as \
+                member Measures.[Variacao] as \
                     (Measures.atual - Measures.anterior) / Measures.atual * 100 \
                 member Measures.TendenciaU12M as \
                     Generate([{dateDimension}].[{startyearU12}].[{startmonthU12}] : [{dateDimension}].[{endyearU12}].[{endmonthU12}], \
@@ -665,24 +717,47 @@ function makeQuery(params) {
                 'endyearU12': endU12.year(),'endmonthU12': endU12.month()+1, 'select': select, 'aggregateFunction': aggregateFunction,
                 'previousEndDate': previousEndDate, 'previousStartDate': previousStartDate, 'additionalWith': additionalWith
             });
-    // console.log(query)
+    
     // if(drillDown) {
     //     console.log('query', query)
     // }
     return {'query': query, 'measure': measure, 'dimension': dimension, 'tab': tab, 'filter': filteredWith, 'u12Months': u12Months}
 }
 
+function popDimension() {
+    semaphoreDimensions--;
+    // every dimension is loaded, run postRefreshFn
+    if (all_queued_dimensions && semaphoreDimensions === 0) {
+        setTimeout(function () {
+            amount_refreshes++;
+
+            if(amount_refreshes == 1) {
+                if (postRenderFn) {
+                    postRenderFn()
+                }
+            }
+
+            if(postRefreshFn) {
+                postRefreshFn();
+            }
+        }, 1000);
+    }
+}
+
 function successDimension(xmla, options, response, query) {
     rows = response.fetchAllAsArray();
     if(query.dimension.visualizationType == 'table') {
-        console.log('has drilldown', query.drillDownCurrent || query.dimension.drillDownBy)
+        // console.log('has drilldown', query.drillDownCurrent || query.dimension.drillDownBy)
         tableId = buildTable({'query':query, 'rows':rows});
         initTableEvents(tableId);
-        renderSparkline('spark-dimension');
         tweakProgressBar();
+        renderSparkline('spark-dimension');
     } else if(query.dimension.visualizationType == 'barchart') {
         buildBarchart({'query':query, 'rows':rows})
     }
+    popDimension()
+
+    redrawSparkline();
 
 };
 
@@ -703,15 +778,20 @@ renderSparkline = function(claz) {
 
 function successMeasure(xmla, options, response, query) {
     rows = response.fetchAllAsArray();
-    buildMeasure(query, rows);
-
-    renderSparkline('spark-measure');
     
     // currentFiltersGlobal = query.filter || currentFiltersGlobal
     currentFiltersGlobal = Array.from(new Set(currentFiltersGlobal.concat(query.filter || [])));
     
     if(query.selectMeasure) {
         selectMeasureKey(query.tab.key, query.initial_measure_key, query);
+    }
+    measure_value = buildMeasure(query, rows);
+    if (query.measure.colorFn) {
+        colorFn = eval(query.measure.colorFn)
+        funcColor = colorFn(measure_value)
+        query.measure.color = funcColor
+        $target = $('#' + (query.tab.caption+query.measure.caption).clean());
+        $target.css('background-color', funcColor)
     }
     if(query.buildTables) {
         createDimensionsForMeasure({
@@ -721,8 +801,9 @@ function successMeasure(xmla, options, response, query) {
             'dimension_key_not_updatable': query.dimension_key_not_updatable,
             'reloading': query.reloading,
             'filterArr': query.filter});
-    }
-
+        }
+        
+    renderSparkline('spark-measure');
 };
 
 function buildTabs(tabs, global_filters) {
@@ -732,7 +813,8 @@ function buildTabs(tabs, global_filters) {
         var tab = tabs[tab_key];
         $target = $('#app .nav-tabs');
         $targetPane = $('#app .tab-content');
-        active = tab_key == 0 ? 'active' : '';
+        active = tab_key == start_tab_key ? 'active' : '';
+
         if(tabs.length > 1) {
             $li = '<li class="' + active + '"> \
                     <a href="#'+ tab.caption.clean() +'" tab="'+ tab_key +'" data-toggle="tab" aria-expanded="true">'+tab.caption+'</a></li>'
@@ -740,7 +822,7 @@ function buildTabs(tabs, global_filters) {
 
         }
 
-        active = tab_key == 0 ? 'active in' : ''
+        active = tab_key == start_tab_key ? 'active in' : ''
         $tabpane = $('<div class="tab-pane fade ' + active + '" id="'+ tab.caption.clean() +'"/>');
 
         $row = $('<div class="row" />');
@@ -765,8 +847,13 @@ function buildTabs(tabs, global_filters) {
 
         $targetPane.append($tabpane);
     }
+
     for (var global_filter_key in global_filters) {
         var global_filter = global_filters[global_filter_key];
+        if (!global_filter.name) {
+            global_filter.name = global_filter.olapDimHierarchy + global_filter.olapDimLevel
+        }
+
         $target.append('<li class="filter-tab"> \
             <select hierarchy="'+global_filter.olapDimHierarchy+'" \
             level="'+global_filter.olapDimLevel+'" id="'+ global_filter.name +'"> \
@@ -777,10 +864,10 @@ function buildTabs(tabs, global_filters) {
     $target.append('<li class="datepicker-tab"><div id="reportrange"><i class="fa fa-calendar"></i> <span></span></div></li>');
     initDatePicker();
     if(global_filters) {
-        measure = tabs[0].measures[0];
+        measure = tabs[start_tab_key].measures[0];
         updateGlobalFilters(measure, true);
     } else {
-        updateMeasure({'tab_key': 0, 'initial_measure_key': 0});
+        updateMeasure({'tab_key': start_tab_key, 'initial_measure_key': 0});
     }
     initTabFunctions();
     $targetPane.append($tables);
@@ -929,8 +1016,8 @@ function successGlobalFilters(xmla, options, response, query) {
     } else {
         buildGlobalFilters({'query':query, 'rows':rows});
         semaphoreGlobalFilter--;
-        if (all_queued && semaphoreGlobalFilter === 0) {
-            updateMeasure({'tab_key': 0, 'initial_measure_key': 0});
+        if (all_queued_global_filter && semaphoreGlobalFilter === 0) {
+            updateMeasure({'tab_key': start_tab_key, 'initial_measure_key': 0});
             prepareSidemenu();
         }
     }
@@ -959,6 +1046,7 @@ function updateGlobalFilters(measure, rebuild) {
         } else {
             measure.olapDimHierarchy = global_filter.olapDimHierarchy;
         }
+        
         $select = $('#'+global_filter.name);
         $select.attr('hierarchy', measure.olapDimHierarchy);
         if(disabled) {
@@ -976,12 +1064,13 @@ function updateGlobalFilters(measure, rebuild) {
             }
 
             semaphoreGlobalFilter++;
+            console.log(query.query)
             new QueryBuilder(query, successGlobalFilters).run();
         } else {
             $select.parent().show();
         }
     }
-    all_queued = true;
+    all_queued_global_filter = true;
 }
 
 function makeGlobalFilterQuery(global_filter, measure, filter) {
@@ -1030,7 +1119,7 @@ function selectMeasureKey(tab_key, measure_key, query) {
 
 function processTrendline(trendline) {
     return trendline.split(',').map(function(x) {
-        return numeral(parseFloat(x)).format(query.measure.numberFormat)
+        return format( query.measure.numberFormat, parseFloat(x) )
     }).join(', ');
 }
 
@@ -1049,11 +1138,31 @@ function buildMeasure(query, rows) {
     $display = $('<div class="display" tooltip="'+toolt+'"/>');
     $number = $('<div class="number"/>');
     measure_measure = preprocessNumber(row[MEASURE_MEASURE]);
-    measure_measure = numeral(measure_measure).format(query.measure.numberFormat);
-    $variation = $('<small class="variation-right pull-right"><i class="fa fa-lg fa-caret-'+sign+'" aria-hidden="true"></i> '+variation+'%</small>');
-
+    
+    measure_measure = format(query.measure.numberFormat, measure_measure)
+//     visualizationOptions
+// showMonthlyVariation
+// showYearlyVariation
+// showTrendLine
+    showVariation = false
+    if (query.measure.visualizationOptions && query.measure.visualizationOptions.showMonthlyVariation == null && query.measure.visualizationOptions.showYearlyVariation == null){
+        showVariation = true
+    } else {
+        if(query.measure.visualizationOptions) {
+            showVariation = query.measure.visualizationOptions.showMonthlyVariation || query.measure.visualizationOptions.showYearlyVariation;
+        } else {
+            showVariation = true
+        }
+    }
+    if (showVariation) {
+        $variation = $('<small class="variation-right pull-right"><i class="fa fa-lg fa-caret-'+sign+'" aria-hidden="true"></i> '+variation+'%</small>');
+    } else {
+        $variation = $('<small class="variation-right pull-right"><i class="fa fa-lg aria-hidden="true"></i>&nbsp</small>');
+    }
+    
     $target.append($variation);
     $target.append($('<div class="clearfix" />'));
+    
     $target.append($display);
     $display.append($number);
 
@@ -1061,25 +1170,38 @@ function buildMeasure(query, rows) {
     $measure_caption = $('<div class="measure-caption"> '+ query.measure.caption +' \ </div>');
     $number.append($measure_caption);
     $number.append($measure_measure);
-
-    $graph = $('<div class="graph"/>');
-    $trendline = $('<span class="spark-measure"></span>');
-    $trendline.data('u12Months', query.u12Months);
-    $trendline.data('values', row[TENDENCIA_MEASURE]);
-    $trendline.data('format', query.measure.numberFormat);
-    var maxColor = query.measure.orientation == 'up' ? '#7fe174' : '#fd7159';
-    var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
-    if (query.measure.color) {
-        measure_color = query.measure.color.length > 1 ? query.measure.color : '#78aad2';
+    
+    showTrendline = false
+    if (query.measure.visualizationOptions && query.measure.visualizationOptions.showTrendLine == null){
+        showTrendline = true
     } else {
-        measure_color = '#78aad2';
+        if(query.measure.visualizationOptions) {
+            showTrendline = query.measure.visualizationOptions.showTrendLine
+        } else {
+            showTrendline = true
+        }
     }
 
-    $trendline.data('minColor', minColor);
-    $trendline.data('maxColor', maxColor);
-    $trendline.data('measureColor', measure_color);
-    $graph.append($trendline);
-
+    $graph = $('<div style="min-height: 35px;"  class="graph"/>');
+    if(showTrendline) {
+        $trendline = $('<span class="spark-measure"></span>');
+        $trendline.data('u12Months', query.u12Months);
+        $trendline.data('values', row[TENDENCIA_MEASURE]);
+        $trendline.data('format', query.measure.numberFormat);
+        var maxColor = query.measure.orientation == 'up' ? '#7fe174' : '#fd7159';
+        var minColor = query.measure.orientation == 'up' ? '#fd7159' : '#7fe174';
+        if (query.measure.color) {
+            measure_color = query.measure.color.length > 1 ? query.measure.color : '#78aad2';
+        } else {
+            measure_color = '#78aad2';
+        }
+    
+        $trendline.data('minColor', minColor);
+        $trendline.data('maxColor', maxColor);
+        $trendline.data('measureColor', measure_color);
+        $graph.append($trendline);
+    
+    }
     $card = $('<div class="card-measure"/>');
     $target.append($card);
     $card.append($graph);
@@ -1097,6 +1219,8 @@ function buildMeasure(query, rows) {
             'shouldUpdateAll': false
         });
     });
+
+    return preprocessNumber(row[MEASURE_MEASURE])
 };
 
 function getVariationSign(measure, variation) {
@@ -1292,8 +1416,6 @@ function buildTable(params) {
     $panelBody = $('<div class="panel-body pre-scrollable scrollingbar" style="max-height: unset; height: '+ height +'px !important;">');
     $panel.append($panelHeading);
     var idx = getColumns(rows[0], query);
-    console.log(rows, idx);
-
 
     if(idx.EXTRA_CAPTIONS.length > 0) {
         $bread = $('<ul class="breadcrumb"/>');
@@ -1414,7 +1536,7 @@ function buildTable(params) {
         }
         $container.append($row);
     }
-    console.log('global', currentFiltersGlobal, 'current', query.filteredCurrent)
+    // console.log('global', currentFiltersGlobal, 'current', query.filteredCurrent)
     // currentFiltersGlobal = Array.from(new Set(currentFiltersGlobal.concat(query.filteredCurrent || [])));
 
     for (var row_key in rows) {
@@ -1447,7 +1569,7 @@ function buildTable(params) {
         }
         if(query.dimension.visualizationOptions.showDataBar) {
             // Builds the component for the measure - a bar
-            console.log(qtyMeasures)
+            // console.log(qtyMeasures)
             for (var i = 0; i <= qtyMeasures; i++) {
                 $colBar = $('<div class="col-xs-'+measure_columns+' col-no-padding "/>');
                 if (i == 0) {
@@ -1455,8 +1577,11 @@ function buildTable(params) {
                 } else {
                     fmt = query.dimension.additionalMeasures[i-1].numberFormat || query.measure.numberFormat
                 }
-
-                measure = numeral(preprocessNumber(row[idx.MEASURE+i])).format(fmt);
+                mval = row[idx.MEASURE+i] 
+                if (!mval) {
+                    mval = 0
+                }
+                measure = format(fmt, mval);
                 $bar = $('<div class="progress-bar bar-default" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"\
                     style="width: '+ (row[idx.MEASURE+i]/max_measures[i])*100 +'%; background-color: '+ color +'"><span>'+measure+'</span></div>');
                 if(i % 2 != 0)
@@ -1756,8 +1881,8 @@ function changeDimensionToAlternativeDimension(tab_key, measure_key, from_dim_ke
 
     temp_alt = measure.alternativeDimensions[to_alt_dim_key];
     temp_current = measure.dimensions[from_dim_key];
-    console.log('alt', temp_alt)
-    console.log('curr', temp_current)
+    // console.log('alt', temp_alt)
+    // console.log('curr', temp_current)
     if(!temp_alt || !temp_current) {
         return
     }
@@ -1799,6 +1924,8 @@ function createDimensionsForMeasure(params) {
     tab = tabs[tab_key];
     measure = tab.measures[measure_key];
     $divTargetTables = $('#tables .row');
+    semaphoreDimensions  = 0, all_queued_dimensions = false;
+
     if (filterArr.length == 0 && !reloading) {
         // $divTargetTables.empty();
         // Build tables
@@ -1847,7 +1974,8 @@ function createDimensionsForMeasure(params) {
                     query.drillDownCurrent = colDrillDownName;
                     query.level = level;
                 }
-                new QueryBuilder(query, successDimension).run();
+                semaphoreDimensions++;
+                new QueryBuilder(query, successDimension, popDimension).run();
 
             }
         }
@@ -1896,11 +2024,13 @@ function createDimensionsForMeasure(params) {
                         query.drillDownCurrent = colDrillDownName;
                         query.level = level;
                     }
+                    semaphoreDimensions++;
                     new QueryBuilder(query, successDimension).run();
                 }
             }
         }
     }
+    all_queued_dimensions = true;
 }
 
 function hasOverflow(e) {
@@ -1938,6 +2068,7 @@ function initTabFunctions() {
         tab_key = $(this).attr('tab');
         tab = tabs[tab_key];
         $('#tables .row').empty();
+        currentFiltersGlobal = []
         updateMeasure({'tab_key': tab_key, 'initial_measure_key': 0});
     });
 }
